@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Chad/JAC444B-Assignment-2/lib/swing-worker.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Chad/JAC444B-Assignment-2/lib/swingx.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Chad/JAC444B-Assignment-2/lib/swingx-bean.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Chad/JAC444B-Assignment-2/lib/swingx-ws-2007_10_14.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Lina/git/JAC444B-Assignment-2/lib/swingx.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Lina/git/JAC444B-Assignment-2/lib/swing-worker.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Lina/git/JAC444B-Assignment-2/lib/swingx-bean.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Lina/git/JAC444B-Assignment-2/lib/swingx-ws-2007_10_14.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
