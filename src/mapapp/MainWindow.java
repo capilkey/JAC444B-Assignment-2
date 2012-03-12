@@ -33,11 +33,12 @@ public class MainWindow extends JFrame {
 	public MainWindow(){
 		super("Map App");
 		setVisible(true);
-		setSize(400, 400);
 		
 		setUpMenuBar();
 		
 		setUpMap();
+		
+		setSize(400, 400);
 	}
 	
 	private void setUpMenuBar() {
