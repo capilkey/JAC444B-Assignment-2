@@ -3,13 +3,9 @@
  */
 package mapapp;
 
-import java.awt.Container;
-import java.awt.FlowLayout;
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -18,15 +14,17 @@ import javax.swing.KeyStroke;
 
 import org.jdesktop.swingx.JXMapKit;
 import org.jdesktop.swingx.JXMapKit.DefaultProviders;
+import org.jdesktop.swingx.mapviewer.GeoPosition;
 
 /**
  * @author Chad
  *
  */
+@SuppressWarnings("serial")
 public class MainWindow extends JFrame {
-	JXMapKit mapKit;
-	JMenuBar menuBar;
-	
+	private JXMapKit mapKit;
+	private JMenuBar menuBar;
+	Geocode coder;
 	/**
 	 * 
 	 */
@@ -39,6 +37,8 @@ public class MainWindow extends JFrame {
 		setUpMap();
 		
 		setSize(400, 400);
+		
+		coder = new Geocode();
 	}
 	
 	private void setUpMenuBar() {
@@ -75,13 +75,20 @@ public class MainWindow extends JFrame {
 		add(mapKit);
 	}
 	
-
+	public void search() {
+		if (coder.parseAddress("ahh", "boo")) {
+			mapKit.setAddressLocation(new GeoPosition(coder.getLat(), coder.getLon()));
+		}
+		
+		
+	}
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		MainWindow mw = new MainWindow();
+		mw.search();
 	}
 
 }
