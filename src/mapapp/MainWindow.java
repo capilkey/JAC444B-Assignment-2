@@ -18,6 +18,10 @@ import javax.swing.KeyStroke;
 
 import org.jdesktop.swingx.JXMapKit;
 import org.jdesktop.swingx.JXMapKit.DefaultProviders;
+import org.jdesktop.swingx.mapviewer.GeoPosition;
+
+import java.io.*;
+
 
 /**
  * @author Chad
@@ -33,11 +37,18 @@ public class MainWindow extends JFrame {
 	public MainWindow(){
 		super("Map App");
 		setVisible(true);
+		setUpMenuBar();
+		setUpMap();
 		setSize(400, 400);
 		
-		setUpMenuBar();
+		try {
+			createTxtFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		setUpMap();
+	
 	}
 	
 	private void setUpMenuBar() {
@@ -52,6 +63,7 @@ public class MainWindow extends JFrame {
 		menuItem = new JMenuItem("Settings");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.ALT_MASK));
 		menu.add(menuItem);
+		
 		menuItem = new JMenuItem("Exit");
 		menu.add(menuItem);
 		
@@ -65,11 +77,41 @@ public class MainWindow extends JFrame {
 		menuBar.setVisible(true);
 		setJMenuBar(menuBar);
 	}
+	private void createTxtFile() throws IOException{
+		Writer writer = null;
+		
+		try {
+			String text = "This is some text,and some more";
+			File file = new File("settings.txt");
+			writer = new BufferedWriter(new FileWriter(file));
+			writer.write(text);
+		}catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+		try {
+		if (writer != null) {
+			writer.close();
+		}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		}
+		
+	}
 	
 	private void setUpMap() {
 		mapKit = new JXMapKit();		
 		mapKit.setVisible(true);
 		mapKit.setDefaultProvider(DefaultProviders.OpenStreetMaps);
+		
+
+		mapKit.setDataProviderCreditShown(true);
+		mapKit.setMiniMapVisible(false);
+		mapKit.setZoom(4);
+		mapKit.setAddressLocation(new GeoPosition(41.881944,-87.627778));
+	
 		
 		add(mapKit);
 	}
@@ -81,6 +123,6 @@ public class MainWindow extends JFrame {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		MainWindow mw = new MainWindow();
+		
 	}
-
 }
