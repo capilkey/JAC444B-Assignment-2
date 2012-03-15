@@ -160,12 +160,6 @@ public class Geocode {
 			}
 		}
 		
-		System.out.println(parts[0]);
-		System.out.println(parts[1]);
-		System.out.println(parts[2]);
-		System.out.println(parts[3]);
-		System.out.println(parts[4]);
-		
 		return lookUpLatLon(parts);
 	}
 	
