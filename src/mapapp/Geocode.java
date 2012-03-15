@@ -20,6 +20,7 @@ public class Geocode {
 	
 	private String errCode;
 	private String errDesc;
+	private String suggestion;
 	
 	private DocumentBuilderFactory factory;	
 	private DocumentBuilder builder;
@@ -47,24 +48,35 @@ public class Geocode {
 			
 			Element root = doc.getDocumentElement();
 			
-			// Get the latt and longt child nodes
 			NodeList geodata = root.getChildNodes();
 			errorFound = false;
 			
-			// Go through all XML nodes and get the latt and longt values
-			// TODO Should only be recieving one node per request
+			String stnumber = null, staddress = null, prov = null, city = null, postal = null;
+			
+			// Go through all XML nodes and get the address info
 			Node currNode = geodata.item(0);
 			for (int i=0; currNode != null && !errorFound; currNode=geodata.item(++i)) {
 				
 				// Skip nodes that are "whitespace" nodes
 				if (currNode.getNodeType() != Node.TEXT_NODE) {
-					if (currNode.getNodeName().equals("latt")) {
-						System.out.println ("Latitude: ");
-						System.out.println (currNode.getFirstChild().getNodeValue());
-					} else if (currNode.getNodeName().equals("longt")) {
-						System.out.println ("Longitude: ");
-						System.out.println (currNode.getFirstChild().getNodeValue());
-					} else if (currNode.getNodeName().equals("error")) {
+					
+					switch (currNode.getNodeName()) {
+					case "stnumber":
+						stnumber = currNode.getFirstChild().getNodeValue();
+						break;
+					case "staddress":
+						staddress = currNode.getFirstChild().getNodeValue();
+						break;
+					case "city":
+						city = currNode.getFirstChild().getNodeValue();
+						break;
+					case "prov":
+						prov = currNode.getFirstChild().getNodeValue();
+						break;
+					case "postal":
+						postal = currNode.getFirstChild().getNodeValue();
+						break;
+					case "error":
 						// Get the error 'code' and 'description' nodes
 						NodeList error = currNode.getChildNodes();
 						System.out.println ("Not a valid address");
@@ -76,20 +88,27 @@ public class Geocode {
 							if (errorDetails.getNodeType() != Node.TEXT_NODE) {
 								
 								// show error code or description (depends on which node)
-								if (errorDetails.getNodeName().equals("code"))
-									System.out.println ("Error code: ");
-								if (errorDetails.getNodeName().equals("description"))
-									System.out.println ("Error description: ");
-		
+								switch (errorDetails.getNodeName()) {
+								case "code":
+									errCode = errorDetails.getFirstChild().getNodeValue();
+									break;
+								case "description":
+									errDesc = errorDetails.getFirstChild().getNodeValue();
+									break;
+								}
+								
 								System.out.println (errorDetails.getFirstChild().getNodeValue());
 							}
-						}  // end for
+						}
 	
 						errorFound = true;
+						
+						break;
 					}
 				}
-
-			}  // end for
+			}
+			
+			address = stnumber + " " + staddress + ", " + city + ", " + prov + ", " + postal;
 			
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block
@@ -103,12 +122,62 @@ public class Geocode {
 	}
 	
 	public boolean parseAddress(String address, String country) {
+		String [] parts = { "", "", "", "", "" };
+		String [] addsplit = address.split(",");
 		
-		// TODO Write code to split up the address
+		// trim the whitespace for each element
+		// look for a postal code
+		for (int i=0; i < addsplit.length; i++) {
+			addsplit[i] = addsplit[i].trim();
+
+			if (addsplit[i].matches("[a-zA-Z]\\d[a-zA-Z]\\d[a-zA-Z]\\d")) {
+				parts[4] = addsplit[i];
+			}
+		}
 		
-		// temp code
-		String [] parts = new String[10];
+		
+		// no postal code found
+		if (parts[4].equals("")) {
+			switch (addsplit.length){
+			case 2:
+				parts[2] = replaceSpaces(addsplit[0]); 		//city
+				parts[3] = replaceSpaces(addsplit[1]); 		//prov
+				break;
+			case 3:
+				if (addsplit[0].matches("\\d* .*")) { // see if street number was provided
+					String [] streetparts = addsplit[0].split(" ", 2);
+					
+					parts[0] = streetparts[0];					//number
+					parts[1] = replaceSpaces(streetparts[1]);	//street
+				} else {
+					parts[1] = replaceSpaces(addsplit[0]);	//street
+				}
+				
+				parts[2] = replaceSpaces(addsplit[1]); 		//city
+				parts[3] = replaceSpaces(addsplit[2]); 		//prov
+				
+				break;
+			}
+		}
+		
+		System.out.println(parts[0]);
+		System.out.println(parts[1]);
+		System.out.println(parts[2]);
+		System.out.println(parts[3]);
+		System.out.println(parts[4]);
+		
 		return lookUpLatLon(parts);
+	}
+	
+	private String replaceSpaces(String s) {
+		StringBuffer temp = new StringBuffer(s);
+		int i = temp.indexOf(" ");
+		while (i != -1) {
+			temp.replace(i, i+1, "+");
+			i = temp.indexOf(" ");
+		}
+		
+		return temp.toString();
 	}
 	
 	private boolean lookUpLatLon(String [] parts) {
@@ -116,7 +185,10 @@ public class Geocode {
 		
 		clear();
 		
-		String URL = "http://geocoder.ca/?stno=&address=Younge+Street&city=Toronto&prov=ON&postal=&decimal=6&geoit=XML";
+		//String URL = "http://geocoder.ca/?stno=&addresst=&city=&prov=ON&postal=&decimal=6&geoit=XML";
+		
+		String URL = "http://geocoder.ca/?stno="+parts[0]+"&addresst="+parts[1]+"&city="+parts[2]
+						+"&prov="+parts[3]+"&postal="+parts[4]+"&decimal=6&geoit=XML";
 		
 	    try {
 			Document doc = builder.parse(URL);
@@ -127,40 +199,65 @@ public class Geocode {
 			NodeList geodata = root.getChildNodes();
 			good = true;
 			
-			// Go through all XML nodes and get the latt and longt values
-			// TODO Should only be recieving one node per request
+			// Go through all nodes and get the info
 			Node currNode = geodata.item(0);
 			for (int i=0; currNode != null && good; currNode=geodata.item(++i)) {
-				
-				// Skip nodes that are "whitespace" nodes
-				if (currNode.getNodeType() != Node.TEXT_NODE) {
-					if (currNode.getNodeName().equals("latt")) {
-						lat = Double.parseDouble(currNode.getFirstChild().getNodeValue());
-					} else if (currNode.getNodeName().equals("longt")) {
-						lon = Double.parseDouble(currNode.getFirstChild().getNodeValue());
-					} else if (currNode.getNodeName().equals("error")) {
-						// Get the error 'code' and 'description' nodes
-						NodeList error = currNode.getChildNodes();
+					
+				switch (currNode.getNodeName()) {
+				case "latt":
+					lat = Double.parseDouble(currNode.getFirstChild().getNodeValue());
+					break;
+				case "longt":
+					lon = Double.parseDouble(currNode.getFirstChild().getNodeValue());
+					break;
+				case "error":
+					NodeList error = currNode.getChildNodes();
+					
+					Node errorDetails = error.item(0);
+					for (int j=0; errorDetails != null; errorDetails=error.item(++j)) {
 						
-						Node errorDetails = error.item(0);
-						for (int j=0; errorDetails != null; errorDetails=error.item(++j)) {
-							
-							// Skip nodes that are "whitespace" nodes
-							if (errorDetails.getNodeType() != Node.TEXT_NODE) {
-								// show error code or description (depends on which node)
-								if (errorDetails.getNodeName().equals("code"))
-									errCode = errorDetails.getFirstChild().getNodeValue();
-								if (errorDetails.getNodeName().equals("description"))
-									errDesc = errorDetails.getFirstChild().getNodeValue();
-							}
+							// grab error info
+						switch (errorDetails.getNodeName()) {
+						case "code":
+							errCode = errorDetails.getFirstChild().getNodeValue();
+							break;
+						case "description":
+							errDesc = errorDetails.getFirstChild().getNodeValue();
+							break;
 						}
-	
-						good = false;
 					}
+					good = false;
+					
+					break;
+				case "suggestion":
+					NodeList suggest = currNode.getChildNodes();
+					
+					String stno = null, street = null, city = null, prov = null;
+					
+					Node suggestionDetails = suggest.item(0);
+					for (int j=0; suggestionDetails != null; suggestionDetails=suggest.item(++j)) {
+						
+						switch (suggestionDetails.getNodeName()) {
+						case "stno":
+							stno = suggestionDetails.getFirstChild().getNodeValue();
+							break;
+						case "addresst":
+							street = suggestionDetails.getFirstChild().getNodeValue();
+							break;
+						case "city":
+							city = suggestionDetails.getFirstChild().getNodeValue();
+							break;
+						case "prov":
+							prov = suggestionDetails.getFirstChild().getNodeValue();
+							break;	
+						}
+					}
+					suggestion = stno + " " + street + ", " + city + ", " + prov;
+					
+					break;
 				}
-
-			}  // end for
-			
+			}
+		
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -178,6 +275,7 @@ public class Geocode {
 		address=null;
 		errCode=null;
 		errDesc=null;
+		suggestion=null;
 	}
 	
 	public double getLat() {
@@ -198,5 +296,9 @@ public class Geocode {
 	
 	public String getAddress() {
 		return address;
+	}
+	
+	public String getSuggestion() {
+		return suggestion;
 	}
 }

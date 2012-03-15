@@ -75,9 +75,16 @@ public class MainWindow extends JFrame {
 		add(mapKit);
 	}
 	
-	public void search() {
-		if (coder.parseAddress("ahh", "boo")) {
+	public void search() {		
+		
+		if (coder.parseAddress("Quebec City, QC", "boo")) {
 			mapKit.setAddressLocation(new GeoPosition(coder.getLat(), coder.getLon()));
+			
+			System.out.println(coder.getLat());
+			System.out.println(coder.getLon());
+		} else {
+			System.out.println(coder.getErrCode());
+			System.out.println(coder.getErrDesc());
 		}
 		
 		
@@ -89,6 +96,7 @@ public class MainWindow extends JFrame {
 		// TODO Auto-generated method stub
 		MainWindow mw = new MainWindow();
 		mw.search();
+		
 	}
 
 }
