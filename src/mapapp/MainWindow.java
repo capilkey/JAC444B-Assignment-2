@@ -1,13 +1,14 @@
-/**
+/*
  * 
  */
 package mapapp;
 
-import java.awt.Container;
+import java.awt.*;
 import java.awt.FlowLayout;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,6 +20,8 @@ import javax.swing.KeyStroke;
 import org.jdesktop.swingx.JXMapKit;
 import org.jdesktop.swingx.JXMapKit.DefaultProviders;
 
+import skchew.*;
+
 /**
  * @author Chad
  *
@@ -26,23 +29,48 @@ import org.jdesktop.swingx.JXMapKit.DefaultProviders;
 public class MainWindow extends JFrame {
 	JXMapKit mapKit;
 	JMenuBar menuBar;
+
 	
 	/**
 	 * 
 	 */
 	public MainWindow(){
+
 		super("Map App");
 		setVisible(true);
-		setSize(400, 400);
-		
+
 		setUpMenuBar();
 		
 		setUpMap();
+		
+		
+	
+		try {
+			WPConfig panel = new WPConfig(); // waypoint config panel
+			add(panel);
+		}
+		catch (Exception e){
+			e.printStackTrace();
+			}  
+	
+		try {
+			WayPoint panel = new WayPoint(); // waypoint right panel
+			add(panel, BorderLayout.EAST);
+		}
+		catch (Exception e){
+			e.printStackTrace();
+			}    
+		
+
+		
+		
+		setSize(800, 400); 
 	}
 	
 	private void setUpMenuBar() {
 		JMenu menu;
 		JMenuItem menuItem;
+		
 		
 		menuBar = new JMenuBar();
 		
@@ -52,6 +80,10 @@ public class MainWindow extends JFrame {
 		menuItem = new JMenuItem("Settings");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.ALT_MASK));
 		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("WayPoint Configuration");
+		menu.add(menuItem);
+		
 		menuItem = new JMenuItem("Exit");
 		menu.add(menuItem);
 		
@@ -71,7 +103,7 @@ public class MainWindow extends JFrame {
 		mapKit.setVisible(true);
 		mapKit.setDefaultProvider(DefaultProviders.OpenStreetMaps);
 		
-		add(mapKit);
+		add(mapKit, BorderLayout.CENTER);
 	}
 	
 
