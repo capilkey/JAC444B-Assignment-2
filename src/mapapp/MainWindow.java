@@ -4,14 +4,14 @@
 package mapapp;
 
 import java.awt.*;
-import java.awt.FlowLayout;
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -43,11 +43,10 @@ public class MainWindow extends JFrame {
 		
 		setUpMap();
 		
-		
-	
+
 		try {
-			WPConfig panel = new WPConfig(); // waypoint config panel
-			add(panel);
+			WPConfig panel = new WPConfig(); // waypoint config panel all				
+			add(panel, BorderLayout.CENTER);
 		}
 		catch (Exception e){
 			e.printStackTrace();
@@ -60,10 +59,7 @@ public class MainWindow extends JFrame {
 		catch (Exception e){
 			e.printStackTrace();
 			}    
-		
 
-		
-		
 		setSize(800, 400); 
 	}
 	
