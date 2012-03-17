@@ -1,12 +1,15 @@
 package mapapp;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -122,45 +125,51 @@ public class Geocode {
 	}
 	
 	public boolean parseAddress(String address, String country) {
-		String [] parts = { "", "", "", "", "" };
-		String [] addsplit = address.split(",");
 		
-		// trim the whitespace for each element
-		// look for a postal code
-		for (int i=0; i < addsplit.length; i++) {
-			addsplit[i] = addsplit[i].trim();
-
-			if (addsplit[i].matches("[a-zA-Z]\\d[a-zA-Z]\\d[a-zA-Z]\\d")) {
-				parts[4] = addsplit[i];
+		if (country.equals("CAN")) {
+			String [] parts = { "", "", "", "", "" };
+			ArrayList<String> addSplit = new ArrayList<String>(Arrays.asList(address.split(",")));
+			
+			// trim the whitespace for each element
+			// look for a postal code
+			for (int i=0; i < addSplit.size(); i++) {
+				addSplit.set(i, addSplit.get(i).trim());
+				
+				// remove the postal code from wherever it's found
+				if (addSplit.get(i).matches("[a-zA-Z]\\d[a-zA-Z]\\d[a-zA-Z]\\d")) {
+					parts[4] = addSplit.get(i);
+					addSplit.remove(i);
+					i--;
+				}
 			}
-		}
-		
-		
-		// no postal code found
-		if (parts[4].equals("")) {
-			switch (addsplit.length){
+			
+			switch (addSplit.size()){
 			case 2:
-				parts[2] = replaceSpaces(addsplit[0]); 		//city
-				parts[3] = replaceSpaces(addsplit[1]); 		//prov
+				parts[2] = replaceSpaces(addSplit.get(0)); 		//city
+				parts[3] = addSplit.get(1); 		//prov
 				break;
 			case 3:
-				if (addsplit[0].matches("\\d* .*")) { // see if street number was provided
-					String [] streetparts = addsplit[0].split(" ", 2);
+				if (addSplit.get(0).matches("\\d* .*")) { // see if street number was provided
+					String [] streetparts = addSplit.get(0).split(" ", 2);
 					
 					parts[0] = streetparts[0];					//number
 					parts[1] = replaceSpaces(streetparts[1]);	//street
 				} else {
-					parts[1] = replaceSpaces(addsplit[0]);	//street
+					parts[1] = replaceSpaces(addSplit.get(1));	//street
 				}
 				
-				parts[2] = replaceSpaces(addsplit[1]); 		//city
-				parts[3] = replaceSpaces(addsplit[2]); 		//prov
+				parts[2] = replaceSpaces(addSplit.get(1)); 		//city
+				parts[3] = addSplit.get(2); 		//prov
 				
 				break;
 			}
-		}
-		
-		return lookUpLatLon(parts);
+			
+			return lookUpLatLonCAN(parts);
+		} else if (country.equals("USA")) {
+			// if it's a US address just pass it the input address
+			return lookUpLatLonUSA(replaceSpaces(address));
+		} else
+			return false;
 	}
 	
 	private String replaceSpaces(String s) {
@@ -174,7 +183,7 @@ public class Geocode {
 		return temp.toString();
 	}
 	
-	private boolean lookUpLatLon(String [] parts) {
+	private boolean lookUpLatLonCAN(String [] parts) {
 		boolean good = false;
 		
 		clear();
@@ -195,7 +204,7 @@ public class Geocode {
 			
 			// Go through all nodes and get the info
 			Node currNode = geodata.item(0);
-			for (int i=0; currNode != null && good; currNode=geodata.item(++i)) {
+			for (int i=0; currNode != null; currNode=geodata.item(++i)) {
 					
 				switch (currNode.getNodeName()) {
 				case "latt":
@@ -261,6 +270,47 @@ public class Geocode {
 		}
 	    
 	    return good;
+	}
+	
+	private boolean lookUpLatLonUSA(String address) {
+		
+		clear();
+		
+		String URL = "http://geocoder.us/service/rest/geocode?address=" + address;
+		
+		try {
+			builder.setErrorHandler(null); 		// Hide the [Fatal Error] that 
+												//shows even with the catch statement
+			Document doc = builder.parse(URL);
+			
+			Element root = doc.getDocumentElement();
+			NodeList geodata = root.getChildNodes();
+			
+			Node currNode = geodata.item(1);
+			geodata = currNode.getChildNodes();
+			
+			currNode = geodata.item(0);
+			for (int i=0; currNode != null; currNode=geodata.item(++i)) {
+					
+				switch (currNode.getNodeName()) {
+				case "geo:long":
+					lon = Double.parseDouble(currNode.getFirstChild().getNodeValue());
+					break;
+				case "geo:lat":
+					lat = Double.parseDouble(currNode.getFirstChild().getNodeValue());
+					break;
+				}
+			}
+			return true;
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			errCode = "004";
+			errDesc = "Address not found, please check your spelling.";
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	private void clear() {

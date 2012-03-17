@@ -3,13 +3,19 @@
  */
 package mapapp;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 import org.jdesktop.swingx.JXMapKit;
@@ -24,7 +30,8 @@ import org.jdesktop.swingx.mapviewer.GeoPosition;
 public class MainWindow extends JFrame {
 	private JXMapKit mapKit;
 	private JMenuBar menuBar;
-	Geocode coder;
+	private	JTextField searchField;
+	private Geocode coder;
 	/**
 	 * 
 	 */
@@ -36,7 +43,10 @@ public class MainWindow extends JFrame {
 		
 		setUpMap();
 		
+		setUpSearchPanel();
+		
 		setSize(400, 400);
+		searchField.requestFocusInWindow();
 		
 		coder = new Geocode();
 	}
@@ -72,19 +82,43 @@ public class MainWindow extends JFrame {
 		mapKit.setVisible(true);
 		mapKit.setDefaultProvider(DefaultProviders.OpenStreetMaps);
 		
-		add(mapKit);
+		add(mapKit, BorderLayout.CENTER);
+	}
+	
+	private void setUpSearchPanel() {
+		JButton searchButton = new JButton( "Search" );
+		searchButton.addActionListener( new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				search();
+			}
+		});
+		
+		searchField = new JTextField(20);	
+		searchField.addActionListener( new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				search();
+			}
+		});
+		
+		JPanel jp = new JPanel();
+		
+		jp.add(searchField, BorderLayout.CENTER);
+		jp.add(searchButton, BorderLayout.EAST);
+		add(jp, BorderLayout.SOUTH);
 	}
 	
 	public void search() {		
-		
-		if (coder.parseAddress("Quebec City, QC", "boo")) {
-			mapKit.setAddressLocation(new GeoPosition(coder.getLat(), coder.getLon()));
-			
-			System.out.println(coder.getLat());
-			System.out.println(coder.getLon());
-		} else {
-			System.out.println(coder.getErrCode());
-			System.out.println(coder.getErrDesc());
+		if (!searchField.getText().equals("")) {
+			if (coder.parseAddress(searchField.getText(), "USA")) {
+				mapKit.setAddressLocation(new GeoPosition(coder.getLat(), coder.getLon()));
+				
+				System.out.println(coder.getLat());
+				System.out.println(coder.getLon());
+			} else {
+				
+				System.out.println(coder.getErrCode());
+				System.out.println(coder.getErrDesc());
+			}
 		}
 		
 		
