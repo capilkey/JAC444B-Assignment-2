@@ -192,7 +192,7 @@ public class Geocode {
 		
 		String URL = "http://geocoder.ca/?stno="+parts[0]+"&addresst="+parts[1]+"&city="+parts[2]
 						+"&prov="+parts[3]+"&postal="+parts[4]+"&decimal=6&geoit=XML";
-		
+
 	    try {
 			Document doc = builder.parse(URL);
 			
@@ -208,10 +208,12 @@ public class Geocode {
 					
 				switch (currNode.getNodeName()) {
 				case "latt":
-					lat = Double.parseDouble(currNode.getFirstChild().getNodeValue());
+					if (good)
+						lat = Double.parseDouble(currNode.getFirstChild().getNodeValue());
 					break;
 				case "longt":
-					lon = Double.parseDouble(currNode.getFirstChild().getNodeValue());
+					if (good)
+						lon = Double.parseDouble(currNode.getFirstChild().getNodeValue());
 					break;
 				case "error":
 					NodeList error = currNode.getChildNodes();

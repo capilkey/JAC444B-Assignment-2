@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -31,6 +32,7 @@ public class MainWindow extends JFrame {
 	private JXMapKit mapKit;
 	private JMenuBar menuBar;
 	private	JTextField searchField;
+	private JComboBox country;
 	private Geocode coder;
 	/**
 	 * 
@@ -100,16 +102,20 @@ public class MainWindow extends JFrame {
 			}
 		});
 		
+		String [] countries = { "CAN", "USA" };
+		country = new JComboBox( countries );
+		
 		JPanel jp = new JPanel();
 		
-		jp.add(searchField, BorderLayout.CENTER);
+		jp.add(searchField, BorderLayout.WEST);
+		jp.add(country, BorderLayout.CENTER);
 		jp.add(searchButton, BorderLayout.EAST);
 		add(jp, BorderLayout.SOUTH);
 	}
 	
 	public void search() {		
-		if (!searchField.getText().equals("")) {
-			if (coder.parseAddress(searchField.getText(), "USA")) {
+		if (!searchField.getText().equals("") && country.getSelectedIndex() != -1) {
+			if (coder.parseAddress(searchField.getText(), (String) country.getSelectedItem())) {
 				mapKit.setAddressLocation(new GeoPosition(coder.getLat(), coder.getLon()));
 				
 				System.out.println(coder.getLat());
