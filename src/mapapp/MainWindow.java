@@ -4,7 +4,6 @@
 package mapapp;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -21,7 +20,13 @@ import javax.swing.KeyStroke;
 
 import org.jdesktop.swingx.JXMapKit;
 import org.jdesktop.swingx.JXMapKit.DefaultProviders;
+import org.jdesktop.swingx.JXMapViewer;
+import org.jdesktop.swingx.mapviewer.DefaultTileFactory;
 import org.jdesktop.swingx.mapviewer.GeoPosition;
+import org.jdesktop.swingx.mapviewer.TileFactory;
+import org.jdesktop.swingx.mapviewer.TileFactoryInfo;
+
+import custom.mapkit.CustomMapKit;
 
 /**
  * @author Chad
@@ -29,10 +34,10 @@ import org.jdesktop.swingx.mapviewer.GeoPosition;
  */
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
-	private JXMapKit mapKit;
+	private CustomMapKit mapKit;
 	private JMenuBar menuBar;
 	private	JTextField searchField;
-	private JComboBox country;
+	private JComboBox<String> country;
 	private Geocode coder;
 	/**
 	 * 
@@ -80,9 +85,10 @@ public class MainWindow extends JFrame {
 	}
 	
 	private void setUpMap() {
-		mapKit = new JXMapKit();		
+		mapKit = new CustomMapKit();		
 		mapKit.setVisible(true);
-		mapKit.setDefaultProvider(DefaultProviders.OpenStreetMaps);
+        
+		//mapKit.setDefaultProvider(DefaultProviders.OpenStreetMaps);
 		
 		add(mapKit, BorderLayout.CENTER);
 	}
@@ -103,7 +109,7 @@ public class MainWindow extends JFrame {
 		});
 		
 		String [] countries = { "CAN", "USA" };
-		country = new JComboBox( countries );
+		country = new JComboBox<String>( countries );
 		
 		JPanel jp = new JPanel();
 		
