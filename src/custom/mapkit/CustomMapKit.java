@@ -1,12 +1,13 @@
 package custom.mapkit;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Point2D;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import org.jdesktop.swingx.JXMapViewer;
@@ -15,14 +16,19 @@ import org.jdesktop.swingx.mapviewer.GeoPosition;
 import org.jdesktop.swingx.mapviewer.TileFactory;
 import org.jdesktop.swingx.mapviewer.TileFactoryInfo;
 
+@SuppressWarnings("serial")
 public class CustomMapKit extends JXMapViewer {
 	private JXMapViewer miniMap;
+	private boolean createWayPoint;
 	
 	public CustomMapKit() {
 		super();
 		
+		createWayPoint = true;
+		
 		setRestrictOutsidePanning(true);
 		setLayout(new BorderLayout());
+		addMouseListener(new MouseClick());
 		
 		setUpMiniMap();
 		
@@ -54,7 +60,6 @@ public class CustomMapKit extends JXMapViewer {
         add(jp, BorderLayout.SOUTH);
 	}
 	
-	
 	/**
 	 * The TileFactory code was taken from the website 
 	 * http://javafx.com/samples/ExercisingSwing/index.html
@@ -76,7 +81,32 @@ public class CustomMapKit extends JXMapViewer {
         setTileFactory(tf);
         tf = new DefaultTileFactory(info);
         miniMap.setTileFactory(tf);
-        
 	}
 
+	
+	private class MouseClick implements MouseListener {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			// user wants to create a waypoint and they left-clicked
+			if (createWayPoint && e.getButton() == MouseEvent.BUTTON1) {
+				System.out.println(e.getX());
+				System.out.println(e.getY());
+				
+				setAddressLocation( convertPointToGeoPosition(new Point2D.Double(e.getX(), e.getY())) );
+			}
+			
+		}
+
+		// empty methods to satisfy the interface
+		@Override
+		public void mouseEntered(MouseEvent e) {}
+		@Override
+		public void mouseExited(MouseEvent e) {}
+		@Override
+		public void mousePressed(MouseEvent e) {}
+		@Override
+		public void mouseReleased(MouseEvent e) {}
+		
+	}
 }
