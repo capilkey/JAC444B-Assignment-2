@@ -4,6 +4,7 @@
 package mapapp;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -52,10 +53,14 @@ public class MainWindow extends JFrame {
 		
 		setUpSearchPanel();
 		
-		setSize(400, 400);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(800, 800);
+		this.setLocationRelativeTo(null);
 		searchField.requestFocusInWindow();
 		
 		coder = new Geocode();
+		
+		this.setMinimumSize(new Dimension(700, 700));
 	}
 	
 	private void setUpMenuBar() {
@@ -112,7 +117,7 @@ public class MainWindow extends JFrame {
 		country = new JComboBox<String>( countries );
 		
 		JPanel jp = new JPanel();
-		
+		jp.setOpaque(false);
 		jp.add(searchField, BorderLayout.WEST);
 		jp.add(country, BorderLayout.CENTER);
 		jp.add(searchButton, BorderLayout.EAST);
