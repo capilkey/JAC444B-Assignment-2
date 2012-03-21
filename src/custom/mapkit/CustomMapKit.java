@@ -4,21 +4,25 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.RoundRectangle2D;
-import java.awt.geom.RoundRectangle2D.Double;
+import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.jdesktop.swingx.JXMapViewer;
 import org.jdesktop.swingx.mapviewer.DefaultTileFactory;
@@ -31,6 +35,7 @@ import org.jdesktop.swingx.painter.Painter;
 public class CustomMapKit extends JXMapViewer {
 	private JXMapViewer miniMap;
 	private boolean createWayPoint;
+	private JSlider jsZoom;
 	
 	public CustomMapKit() {
 		super();
@@ -40,6 +45,11 @@ public class CustomMapKit extends JXMapViewer {
 		setRestrictOutsidePanning(true);
 		setLayout(new BorderLayout());
 		addMouseListener(new MouseClick());
+		try {
+			this.setLoadingImage(ImageIO.read(new File("resources/loading.png")));
+		} catch (IOException e) {
+			System.out.println("loading.png not found");
+		}
 		
 		setUpMiniMap();
 		
@@ -47,13 +57,14 @@ public class CustomMapKit extends JXMapViewer {
 		
 		setUpMapSource();
         
-		setZoom(12);
-		setAddressLocation( new GeoPosition( 0.00, 0.00) );
-		miniMap.setAddressLocation( new GeoPosition( 0.00, 0.00) );
+		setZoom(10); // start at zoom level 7
+		setAddressLocation(new GeoPosition(51.5,0));
 	}
 	
 	private void setUpZoomButtons() {
-		JButton plus = new JButton("+");
+		JButton plus = new JButton();
+        
+		plus.setIcon( new ImageIcon("resources/plus.png") );
 		plus.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -62,7 +73,9 @@ public class CustomMapKit extends JXMapViewer {
 			}
 		});
 		
-		JButton minus = new JButton("-");
+		JButton minus = new JButton();
+		minus.setOpaque(false);
+		minus.setIcon( new ImageIcon("resources/minus.png") );
 		minus.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -71,15 +84,32 @@ public class CustomMapKit extends JXMapViewer {
 			}
 		});
 		
+		jsZoom = new JSlider(JSlider.VERTICAL, 1, 15, 10);
+		jsZoom.setMajorTickSpacing(1);
+		jsZoom.setMinorTickSpacing(1);
+		jsZoom.setPaintTicks(true);
+		jsZoom.setOpaque(false);
+		jsZoom.addChangeListener( new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				setZoom(((JSlider) e.getSource()).getValue());
+			}
+		});
+
 		JPanel jp = new JPanel();
+		JPanel jp2 = new JPanel();
 		
-		jp.setLayout(new GridLayout(10,2,10,10));
-		jp.add(plus);
-		jp.add(minus);
-		
+		jp.setLayout(new BorderLayout());
+		jp.add(minus, BorderLayout.NORTH);
+		jp.add(jsZoom, BorderLayout.CENTER);
+		jp.add(plus, BorderLayout.SOUTH);
 		jp.setOpaque(false);
 		
-		add(jp, BorderLayout.WEST);
+		//jp2.setLayout(new BorderLayout());
+		jp2.add(jp, BorderLayout.CENTER);
+		jp2.setOpaque(false);
+		
+		add(jp2, BorderLayout.WEST);
 	}
 	
 	private void setUpMiniMap() {
@@ -120,11 +150,10 @@ public class CustomMapKit extends JXMapViewer {
 				Rectangle rect = map.getViewportBounds();
 				g.translate(-rect.x, -rect.y);
 				
-				RoundRectangle2D.Double shp = new RoundRectangle2D.Double(
-						nw.getX(), (int)nw.getY(), 	// x, y
-						(se.getX()-nw.getX()), 		// width
-						(se.getY()-nw.getY()), 		// height
-						10, 10);					// roundedness
+				Rectangle2D.Double shp = new Rectangle2D.Double(
+						nw.getX(), nw.getY(), 		// x, y
+						se.getX()-nw.getX(), 		// width
+						se.getY()-nw.getY());		// height
 				
 				g.setColor(new Color(255,0,0,255));
 				g.draw(shp);						
@@ -150,23 +179,32 @@ public class CustomMapKit extends JXMapViewer {
 	 */
 	private void setUpMapSource() {
 		final int max = 17;
-		TileFactoryInfo info = new TileFactoryInfo(1,max-2,max,
-				256, true, true, // tile size is 256 and x/y orientation is normal
-				"http://tile.openstreetmap.org",
-				"x","y","z") {
-			public String getTileUrl(int x, int y, int zoom) {
-				zoom = max-zoom;
-				String url = this.baseURL +"/"+zoom+"/"+x+"/"+y+".png";
-				return url;
-			}
-			
-		};
-		TileFactory tf = new DefaultTileFactory(info);
-		setTileFactory(tf);
-		tf = new DefaultTileFactory(info);
+        TileFactoryInfo info = new TileFactoryInfo(1,max-2,max,
+                256, true, true, // tile size is 256 and x/y orientation is normal
+                "http://tile.openstreetmap.org",//5/15/10.png",
+                "x","y","z") {
+            public String getTileUrl(int x, int y, int zoom) {
+                zoom = max-zoom;
+                String url = this.baseURL +"/"+zoom+"/"+x+"/"+y+".png";
+                return url;
+            }
+            
+        };
+        TileFactory tf = new DefaultTileFactory(info);
+        setTileFactory(tf);
+        setZoom(11);
+        
+        tf = new DefaultTileFactory(info);
 		miniMap.setTileFactory(tf);
 	}
-
+	
+	@Override
+	public void setZoom(int zoom) {
+		super.setZoom(zoom);
+		
+		miniMap.setZoom(zoom+3);
+		jsZoom.setValue(zoom);
+	}
 	
 	private class MouseClick implements MouseListener {
 
@@ -176,6 +214,9 @@ public class CustomMapKit extends JXMapViewer {
 			if (createWayPoint && e.getButton() == MouseEvent.BUTTON1) {
 				System.out.println(e.getX());
 				System.out.println(e.getY());
+				
+				System.out.println(getZoom());
+				System.out.println(miniMap.getZoom());
 				
 				// not accurate - off by a couple points
 				//setAddressLocation( convertPointToGeoPosition(new Point2D.Double(e.getX(), e.getY())) );
