@@ -13,12 +13,17 @@ import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JSlider;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
@@ -29,42 +34,100 @@ import org.jdesktop.swingx.mapviewer.DefaultTileFactory;
 import org.jdesktop.swingx.mapviewer.GeoPosition;
 import org.jdesktop.swingx.mapviewer.TileFactory;
 import org.jdesktop.swingx.mapviewer.TileFactoryInfo;
+import org.jdesktop.swingx.mapviewer.Waypoint;
+import org.jdesktop.swingx.mapviewer.WaypointPainter;
 import org.jdesktop.swingx.painter.Painter;
 
+import custom.waypoint.WaypointExt;
+
 @SuppressWarnings("serial")
+/**@author ChadV2
+ * The CustomMapKit class extends the JXMapViewer class and
+ * seeks to extend the latter's functionality by handling
+ * Waypoint management as well as adding zoom buttons and
+ * a minimap.
+ * 
+ */
 public class CustomMapKit extends JXMapViewer {
 	private JXMapViewer miniMap;
-	private boolean createWayPoint;
 	private JSlider jsZoom;
-	
+	private JPopupMenu popupAdd;
+	private JPopupMenu popupRemove;
+	private Point2D lastClicked;
+	Set wps = new HashSet();
+
+	/**
+	 * This is the only contstructor and takes no arguments.
+	 * It handles all the set up of the map kit on its own.
+	 * @author Chad
+	 * @see JXMapViewer()
+	 */
 	public CustomMapKit() {
 		super();
 		
-		createWayPoint = true;
-		
-		setRestrictOutsidePanning(true);
+		setRestrictOutsidePanning(true); // make sure you cant pan too far up or down
 		setLayout(new BorderLayout());
 		addMouseListener(new MouseClick());
+		
+		// set the image to show when loading a new map tile
+		// the default image is just a black box
 		try {
 			this.setLoadingImage(ImageIO.read(new File("resources/loading.png")));
 		} catch (IOException e) {
 			System.out.println("loading.png not found");
 		}
 		
-		setUpMiniMap();
+		// different initialization sections broken up 
+		// to increase readability
+		setupMiniMap();
+		setupZoomButtons();
+		setupMapSource();
+		setupPopupMenu();
 		
-		setUpZoomButtons();
-		
-		setUpMapSource();
-        
-		setZoom(10); // start at zoom level 7
-		setAddressLocation(new GeoPosition(51.5,0));
+		setZoom(10); // start at zoom level 10
+		setAddressLocation(new GeoPosition(51.5,0)); // start with the map centered on London, UK
 	}
 	
-	private void setUpZoomButtons() {
+	/**
+	 * The setUpPopupMenu() method is solely for initializing the popup menus
+	 * that show when the user right-clicks on the map and allow for addition
+	 * of a waypoint at that location or removal of an already existing waypoint
+	 * @author Chad
+	 */
+	private void setupPopupMenu() {
+		//Create the popup menu.
+	    popupAdd = new JPopupMenu();
+	    JMenuItem menuItem = new JMenuItem("Add a waypoint");
+	    menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addWaypoint(new WaypointExt(getTileFactory().pixelToGeo(lastClicked, getZoom())));
+			}
+	    });
+	    popupAdd.add(menuItem);
+	    
+	    popupRemove = new JPopupMenu();
+	    menuItem = new JMenuItem("Remove this waypoint");
+	    menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removeWaypoint(new WaypointExt(getTileFactory().pixelToGeo(lastClicked, getZoom())));
+			}
+	    });
+	    popupRemove.add(menuItem);
+	}
+	
+	/**
+	 * The setupZoomButtons() method is solely used for initialization of the
+	 * two zoom buttons and the zoom slider bar. For zooming 0 means that you're
+	 * zoomed all the way in and 15 (the max for OpenStreetMaps) is zoomed all
+	 * the way out.
+	 * @author Chad
+	 */
+	private void setupZoomButtons() {
+		// the plus button increases the zooms one more level in
 		JButton plus = new JButton();
-        
-		plus.setIcon( new ImageIcon("resources/plus.png") );
+		plus.setIcon( new ImageIcon("resources/plus.png") ); // icon grabbed from JXMapKit
 		plus.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -73,9 +136,9 @@ public class CustomMapKit extends JXMapViewer {
 			}
 		});
 		
+		// the minus button reduces the zoom by one level
 		JButton minus = new JButton();
-		minus.setOpaque(false);
-		minus.setIcon( new ImageIcon("resources/minus.png") );
+		minus.setIcon( new ImageIcon("resources/minus.png") ); // icon grabbed from JXMapKit
 		minus.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -84,15 +147,16 @@ public class CustomMapKit extends JXMapViewer {
 			}
 		});
 		
+		// vertical slider, min=1, max=15, initial=10
 		jsZoom = new JSlider(JSlider.VERTICAL, 1, 15, 10);
 		jsZoom.setMajorTickSpacing(1);
 		jsZoom.setMinorTickSpacing(1);
-		jsZoom.setPaintTicks(true);
-		jsZoom.setOpaque(false);
+		jsZoom.setPaintTicks(true);		// show the ticks
+		jsZoom.setOpaque(false);		// make it see through
 		jsZoom.addChangeListener( new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				setZoom(((JSlider) e.getSource()).getValue());
+				setZoom(((JSlider) e.getSource()).getValue()); // change the zoom level
 			}
 		});
 
@@ -105,17 +169,21 @@ public class CustomMapKit extends JXMapViewer {
 		jp.add(plus, BorderLayout.SOUTH);
 		jp.setOpaque(false);
 		
-		//jp2.setLayout(new BorderLayout());
 		jp2.add(jp, BorderLayout.CENTER);
 		jp2.setOpaque(false);
 		
 		add(jp2, BorderLayout.WEST);
 	}
 	
-	private void setUpMiniMap() {
+	/**
+	 * The setupMiniMap() method handles initialization of the minimap in the 
+	 * bottom right hand corner.
+	 * @author Chad
+	 */
+	private void setupMiniMap() {
 		miniMap = new JXMapViewer();
 		
-		miniMap.setBorder( BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+		miniMap.setBorder( BorderFactory.createEtchedBorder(EtchedBorder.RAISED)); // add a border so you can easily see it
 		miniMap.setMinimumSize( new Dimension(250, 200) );
 		miniMap.setPreferredSize( new Dimension(250, 200) );
 		miniMap.setZoom(15);
@@ -174,10 +242,10 @@ public class CustomMapKit extends JXMapViewer {
 	}
 	
 	/**
-	 * The TileFactory code was taken from the website 
+	 * The TileFactory code was taken from the website and without it the map wouldnt load
 	 * http://javafx.com/samples/ExercisingSwing/index.html
 	 */
-	private void setUpMapSource() {
+	private void setupMapSource() {
 		final int max = 17;
         TileFactoryInfo info = new TileFactoryInfo(1,max-2,max,
                 256, true, true, // tile size is 256 and x/y orientation is normal
@@ -198,33 +266,122 @@ public class CustomMapKit extends JXMapViewer {
 		miniMap.setTileFactory(tf);
 	}
 	
+	/**
+	 * The setZoom(int) method overrides JXMapViewers setZoom(int) and
+	 * adds functionality for continuity with the minimap and with the
+	 * zoom slider on the side.
+	 * @description When setting a new zoom level 0 is zoomed all the way in and 15 is all the way out.
+	 * @author Chad
+	 * @param zoom the integer value that you want to set the new zoom to.
+	 */
 	@Override
 	public void setZoom(int zoom) {
 		super.setZoom(zoom);
 		
-		miniMap.setZoom(zoom+3);
-		jsZoom.setValue(zoom);
+		miniMap.setZoom(zoom+3); // keep the minimap 3 levels zoomed out from the main map if possible
+		jsZoom.setValue(zoom);	 // keep the slider up to date with everything else
 	}
 	
+	/**
+	 * The addWaypoint(WaypointExt) method adds functionality for handling of 
+	 * the waypoint drawing to compartmentalize the waypoint code and take the
+	 * focus from the main window. 
+	 * @description The method checks for duplicate Waypoints and rejects any duplicates
+	 * @author Chad
+	 * @param wp is the new waypoint to draw
+	 * @return returns true if the waypoint was successfully added, false otherwise
+	 */
+	public boolean addWaypoint(WaypointExt wp) {
+		if (!wps.contains(wp)) {
+			wps.add(wp);
+			WaypointPainter t = new WaypointPainter();
+			t.setWaypoints(wps);
+			setOverlayPainter(t);
+			return true;
+		} else
+			return false;
+	}
+	
+	/**
+	 * The removeWaypoint() method attempts to remove the passed WaypointExt object.
+	 * @author Chad
+	 * @param wp is the waypoint to try and remove
+	 * @return returns true if the waypoint was successfully removed, false otherwise
+	 */
+	public boolean removeWaypoint(WaypointExt wp) {
+		/*
+		System.out.println(wps.contains(wp));
+		System.out.println(wps.remove(wp));
+		System.out.println(wps.iterator().next().equals(wp));
+		// WHY THE FUCK DOENST THIS WORK
+		*/
+		
+		// I have to jump through some hoops to try and remove a Waypoint because
+		// the built-in Set object won't call my overridden Waypoint.equals(o) method
+		ArrayList<WaypointExt> t1 = new ArrayList<WaypointExt>();
+		t1.addAll(wps);
+		
+		if (t1.remove(wp)) { // if the wp is found reset painter
+			wps = new HashSet();
+			wps.addAll(t1);
+			WaypointPainter t = new WaypointPainter();
+			t.setWaypoints(wps);
+			setOverlayPainter(t);
+			return true;
+		} else
+			return false;
+	}
+	
+	/**
+	 * The WaypointExt(Point2D) method determines if the given Point2D is within 6 pixels(?)
+	 * of an already existing Waypoint,
+	 * @author Chad
+	 * @param pt is the Point2D that you want to search for
+	 * @return returns the closest Waypoint that it can find, null if none are found
+	 */
+	public WaypointExt waypointNear(Point2D pt) {
+		WaypointExt w = null;
+		
+		double longestDistance = 6; // start looking for waypoints closer then 6
+		Object [] wparray = wps.toArray(); 	// it doesnt like getting cast to a Waypoint[]
+											// so I have to cast each item when I use it
+		
+		for(int i=0; i<wparray.length; i++) {
+			// translate each waypoint to a pixel location
+			Point2D wppt = getTileFactory().geoToPixel(((WaypointExt) wparray[i]).getPosition(), getZoom());
+			if (wppt.distance(lastClicked) < longestDistance ) {
+				w = (WaypointExt) wparray[i]; // if the waypoint is the closest record it
+			}
+		}
+		
+		return w;
+	}
+	
+	/**
+	 * The MouseClick class implements the MouseListener interface and handles the 
+	 * user right-clicking on the map by opening an appropriate popup menu depending
+	 * on whether or not the user clicked on an existing waypoint.
+	 * @author Chad
+	 */
 	private class MouseClick implements MouseListener {
-
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			// user wants to create a waypoint and they left-clicked
-			if (createWayPoint && e.getButton() == MouseEvent.BUTTON1) {
-				System.out.println(e.getX());
-				System.out.println(e.getY());
-				
-				System.out.println(getZoom());
-				System.out.println(miniMap.getZoom());
-				
-				// not accurate - off by a couple points
-				//setAddressLocation( convertPointToGeoPosition(new Point2D.Double(e.getX(), e.getY())) );
+			if (e.getButton() == MouseEvent.BUTTON3) { // user right-clicked
 				Point2D topcorner = getViewportBounds().getLocation(); // find the point to offset by
-				setAddressLocation(getTileFactory().pixelToGeo(new Point2D.Double(
-																	topcorner.getX()+e.getX(), 
-																	topcorner.getY()+e.getY()),
-															   getZoom()));
+				// calculate the actual clicked point on the map
+				lastClicked = new Point2D.Double(topcorner.getX()+e.getX(),topcorner.getY()+e.getY());
+				
+				// determine if the user clicked near and existing waypoint
+				WaypointExt temp = waypointNear(lastClicked);
+				if (temp == null) 	// if they didnt click on a waypoint
+									// let them create a new waypoint
+					popupAdd.show(e.getComponent(), e.getX(), e.getY());
+				else {				// if they did click on a waypoint
+									// change where they clicked to register as 
+									// them having clicked on the nearest waypoint
+					lastClicked = getTileFactory().geoToPixel(temp.getPosition(), getZoom());
+					popupRemove.show(e.getComponent(), e.getX(), e.getY());
+				}
 			}
 			
 		}
@@ -238,6 +395,5 @@ public class CustomMapKit extends JXMapViewer {
 		public void mousePressed(MouseEvent e) {}
 		@Override
 		public void mouseReleased(MouseEvent e) {}
-		
 	}
 }
