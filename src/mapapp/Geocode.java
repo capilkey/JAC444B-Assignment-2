@@ -38,12 +38,12 @@ public class Geocode {
 	}
 	
 	public boolean reverseLookup(double la, double lo) {
-		boolean errorFound = true;
+		boolean good = false;
 		
 		clear();
 		
 		String URL = "http://geocoder.ca/?latt="+la+"&longt="+lo+ 
-							"&reverse=1&decimal=6&geoit=XML";
+							"&reverse=1&allna=1decimal=6&geoit=XML";
 		
 	    try {
 			Document doc = builder.parse(URL);
@@ -51,14 +51,21 @@ public class Geocode {
 			Element root = doc.getDocumentElement();
 			
 			NodeList geodata = root.getChildNodes();
-			errorFound = false;
+			Node currNode = geodata.item(0);
+			if (currNode.getNodeType() == Node.TEXT_NODE)
+				currNode = geodata.item(1); // if the first one is text take the second one
+			
+			geodata = currNode.getChildNodes();
+			good = true;
 			
 			String stnumber = null, staddress = null, prov = null, city = null, postal = null;
 			
 			// Go through all XML nodes and get the address info
-			Node currNode = geodata.item(0);
-			for (int i=0; currNode != null && !errorFound; currNode=geodata.item(++i)) {
-				
+			currNode = geodata.item(0);
+			for (int i=0; currNode != null && good; currNode=geodata.item(++i)) {
+				short t = currNode.getNodeType();
+				String t2 = currNode.getNodeName();
+
 				// Skip nodes that are "whitespace" nodes
 				if (currNode.getNodeType() != Node.TEXT_NODE) {
 					
@@ -78,39 +85,21 @@ public class Geocode {
 					case "postal":
 						postal = currNode.getFirstChild().getNodeValue();
 						break;
-					case "error":
-						// Get the error 'code' and 'description' nodes
-						NodeList error = currNode.getChildNodes();
-						System.out.println ("Not a valid address");
-						
-						Node errorDetails = error.item(0);
-						for (int j=0; errorDetails != null; errorDetails=error.item(++j)) {
-							
-							// Skip nodes that are "whitespace" nodes
-							if (errorDetails.getNodeType() != Node.TEXT_NODE) {
-								
-								// show error code or description (depends on which node)
-								switch (errorDetails.getNodeName()) {
-								case "code":
-									errCode = errorDetails.getFirstChild().getNodeValue();
-									break;
-								case "description":
-									errDesc = errorDetails.getFirstChild().getNodeValue();
-									break;
-								}
-								
-								System.out.println (errorDetails.getFirstChild().getNodeValue());
-							}
-						}
-	
-						errorFound = true;
-						
+					case "code":
+						errCode = currNode.getFirstChild().getNodeValue();
+						break;
+					case "description":
+						errDesc = currNode.getFirstChild().getNodeValue();
 						break;
 					}
 				}
 			}
 			
-			address = stnumber + " " + staddress + ", " + city + ", " + prov + ", " + postal;
+			if (errCode == null) {
+				address = stnumber + " " + staddress + ", " + city + ", " + prov;
+			} else {
+				good = false;
+			}
 			
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block
@@ -119,8 +108,8 @@ public class Geocode {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return errorFound;
+
+		return good;
 	}
 	
 	public boolean parseAddress(String address, String country) {

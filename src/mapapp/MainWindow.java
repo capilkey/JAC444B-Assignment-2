@@ -33,7 +33,7 @@ public class MainWindow extends JFrame {
 	private JMenuBar menuBar;
 	private	JTextField searchField;
 	private JComboBox<String> country;
-	private Geocode coder;
+
 	/**
 	 * 
 	 */
@@ -51,8 +51,6 @@ public class MainWindow extends JFrame {
 		setSize(800, 800);
 		this.setLocationRelativeTo(null);
 		searchField.requestFocusInWindow();
-		
-		coder = new Geocode();
 		
 		this.setMinimumSize(new Dimension(700, 700));
 	}
@@ -120,15 +118,15 @@ public class MainWindow extends JFrame {
 	
 	public void search() {		
 		if (!searchField.getText().equals("") && country.getSelectedIndex() != -1) {
-			if (coder.parseAddress(searchField.getText(), (String) country.getSelectedItem())) {
-				mapKit.setAddressLocation(new GeoPosition(coder.getLat(), coder.getLon()));
+			if (mapKit.getCoder().parseAddress(searchField.getText(), (String) country.getSelectedItem())) {
+				mapKit.setAddressLocation(new GeoPosition(mapKit.getCoder().getLat(), mapKit.getCoder().getLon()));
 				
-				System.out.println(coder.getLat());
-				System.out.println(coder.getLon());
+				//System.out.println(mapKit.getCoder().getLat());
+				//System.out.println(mapKit.getCoder().getLon());
 			} else {
 				
-				System.out.println(coder.getErrCode());
-				System.out.println(coder.getErrDesc());
+				System.out.println(mapKit.getCoder().getErrCode());
+				System.out.println(mapKit.getCoder().getErrDesc());
 			}
 		}
 		

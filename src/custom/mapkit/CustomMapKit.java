@@ -4,12 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +24,7 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -28,6 +32,8 @@ import javax.swing.JSlider;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import mapapp.Geocode;
 
 import org.jdesktop.swingx.JXMapViewer;
 import org.jdesktop.swingx.mapviewer.DefaultTileFactory;
@@ -49,13 +55,15 @@ import custom.waypoint.WaypointExt;
  * 
  */
 public class CustomMapKit extends JXMapViewer {
-	private JXMapViewer miniMap;
-	private JSlider jsZoom;
-	private JPopupMenu popupAdd;
-	private JPopupMenu popupRemove;
-	private Point2D lastClicked;
-	Set wps = new HashSet();
-
+	final private JXMapViewer miniMap = new JXMapViewer();
+	final private JSlider jsZoom = new JSlider();
+	final private JPopupMenu popupAdd = new JPopupMenu();
+	final private JPopupMenu popupRemove = new JPopupMenu();
+	final private JLabel address = new JLabel("test");
+	private WaypointExt lastClicked;
+	private Set wps = new HashSet();
+	final private Geocode coder = new Geocode();
+	
 	/**
 	 * This is the only contstructor and takes no arguments.
 	 * It handles all the set up of the map kit on its own.
@@ -67,7 +75,6 @@ public class CustomMapKit extends JXMapViewer {
 		
 		setRestrictOutsidePanning(true); // make sure you cant pan too far up or down
 		setLayout(new BorderLayout());
-		addMouseListener(new MouseClick());
 		
 		// set the image to show when loading a new map tile
 		// the default image is just a black box
@@ -77,15 +84,76 @@ public class CustomMapKit extends JXMapViewer {
 			System.out.println("loading.png not found");
 		}
 		
+		address.setVisible(false);
+		add(address);
+		
 		// different initialization sections broken up 
 		// to increase readability
 		setupMiniMap();
 		setupZoomButtons();
 		setupMapSource();
 		setupPopupMenu();
+		setupMouseEvents();
 		
 		setZoom(10); // start at zoom level 10
-		setAddressLocation(new GeoPosition(51.5,0)); // start with the map centered on London, UK
+		setAddressLocation(new GeoPosition(43.701637,-79.392929)); // start with the map centered on Toronto
+	}
+	
+	/**
+	 * The setupMouseEvents() method assigns the mouseClicked and mouseMoved events. 
+	 * When the user right-clicks on the map an appropriate popup menu is opened 
+	 * depending on whether or not the user clicked on an existing waypoint. When 
+	 * the mouse is moved a label is displayed if near a waypoint that has an address.
+	 * @author Chad
+	 */
+	private void setupMouseEvents() {
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getButton() == MouseEvent.BUTTON3) { // user right-clicked
+					Point2D topcorner = getViewportBounds().getLocation(); // find the point to offset by
+					// calculate the actual clicked point on the map
+					lastClicked = new WaypointExt(getTileFactory().pixelToGeo(new Point2D.Double(topcorner.getX()+e.getX(),topcorner.getY()+e.getY()), getZoom()));
+					
+					// determine if the user clicked near and existing waypoint
+					WaypointExt near = waypointNear(lastClicked);
+					if (near == null) 	// if they didnt click on a waypoint
+										// let them create a new waypoint
+						popupAdd.show(e.getComponent(), e.getX(), e.getY());
+					else {				// if they did click on a waypoint
+										// change where they clicked to register as 
+										// them having clicked on the nearest waypoint
+						lastClicked = near;
+						popupRemove.show(e.getComponent(), e.getX(), e.getY());
+					}
+				}
+			}
+		});
+		
+		addMouseMotionListener( new MouseMotionAdapter() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				Rectangle view = getViewportBounds(); // find the point to offset by
+				// calculate the actual on the map
+				WaypointExt position = new WaypointExt(getTileFactory().pixelToGeo(new Point2D.Double(view.x+e.getX(),view.y+e.getY()), getZoom()));
+				
+				// determine if the mouse is near an existing waypoint
+				WaypointExt near = waypointNear(position);
+				
+				if (near != null) {
+					String a = near.getAddress();
+					if (a != null) {
+						Point2D gp_pt = getTileFactory().geoToPixel(near.getPosition(), getZoom());
+						
+						address.setBounds((int)gp_pt.getX()-view.x,(int)gp_pt.getY()-view.y, 400,20);
+						address.setVisible(true);
+						address.setText(a);
+					} else
+						address.setVisible(false);
+				} else 
+					address.setVisible(false);
+			}
+		});
 	}
 	
 	/**
@@ -96,22 +164,41 @@ public class CustomMapKit extends JXMapViewer {
 	 */
 	private void setupPopupMenu() {
 		//Create the popup menu.
-	    popupAdd = new JPopupMenu();
 	    JMenuItem menuItem = new JMenuItem("Add a waypoint");
 	    menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addWaypoint(new WaypointExt(getTileFactory().pixelToGeo(lastClicked, getZoom())));
+				addWaypoint(lastClicked);
+				if (coder.reverseLookup(lastClicked.getPosition().getLatitude(),lastClicked.getPosition().getLongitude())) {
+					lastClicked.setAddress(coder.getAddress());
+				} //else {
+					//System.out.println(coder.getErrCode() + " : " + coder.getErrDesc());
+				//}
+			}
+	    });
+	    popupAdd.add(menuItem);
+	    menuItem = new JMenuItem("Center map here");
+	    menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				setAddressLocation(lastClicked.getPosition());
 			}
 	    });
 	    popupAdd.add(menuItem);
 	    
-	    popupRemove = new JPopupMenu();
 	    menuItem = new JMenuItem("Remove this waypoint");
 	    menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				removeWaypoint(new WaypointExt(getTileFactory().pixelToGeo(lastClicked, getZoom())));
+				removeWaypoint(lastClicked);
+			}
+	    });
+	    popupRemove.add(menuItem);
+	    menuItem = new JMenuItem("Center map here");
+	    menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				setAddressLocation(lastClicked.getPosition());
 			}
 	    });
 	    popupRemove.add(menuItem);
@@ -148,7 +235,11 @@ public class CustomMapKit extends JXMapViewer {
 		});
 		
 		// vertical slider, min=1, max=15, initial=10
-		jsZoom = new JSlider(JSlider.VERTICAL, 1, 15, 10);
+		jsZoom.setInverted(true);
+		jsZoom.setMaximum(15);
+		jsZoom.setMinimum(1);
+		jsZoom.setValue(10);
+		jsZoom.setOrientation(JSlider.VERTICAL);
 		jsZoom.setMajorTickSpacing(1);
 		jsZoom.setMinorTickSpacing(1);
 		jsZoom.setPaintTicks(true);		// show the ticks
@@ -164,9 +255,9 @@ public class CustomMapKit extends JXMapViewer {
 		JPanel jp2 = new JPanel();
 		
 		jp.setLayout(new BorderLayout());
-		jp.add(minus, BorderLayout.NORTH);
+		jp.add(plus, BorderLayout.NORTH);
 		jp.add(jsZoom, BorderLayout.CENTER);
-		jp.add(plus, BorderLayout.SOUTH);
+		jp.add(minus, BorderLayout.SOUTH);
 		jp.setOpaque(false);
 		
 		jp2.add(jp, BorderLayout.CENTER);
@@ -181,8 +272,6 @@ public class CustomMapKit extends JXMapViewer {
 	 * @author Chad
 	 */
 	private void setupMiniMap() {
-		miniMap = new JXMapViewer();
-		
 		miniMap.setBorder( BorderFactory.createEtchedBorder(EtchedBorder.RAISED)); // add a border so you can easily see it
 		miniMap.setMinimumSize( new Dimension(250, 200) );
 		miniMap.setPreferredSize( new Dimension(250, 200) );
@@ -339,9 +428,10 @@ public class CustomMapKit extends JXMapViewer {
 	 * @param pt is the Point2D that you want to search for
 	 * @return returns the closest Waypoint that it can find, null if none are found
 	 */
-	public WaypointExt waypointNear(Point2D pt) {
+	public WaypointExt waypointNear(WaypointExt check) {
 		WaypointExt w = null;
 		
+		Point2D checkpt = getTileFactory().geoToPixel(check.getPosition(), getZoom());
 		double longestDistance = 6; // start looking for waypoints closer then 6
 		Object [] wparray = wps.toArray(); 	// it doesnt like getting cast to a Waypoint[]
 											// so I have to cast each item when I use it
@@ -349,7 +439,7 @@ public class CustomMapKit extends JXMapViewer {
 		for(int i=0; i<wparray.length; i++) {
 			// translate each waypoint to a pixel location
 			Point2D wppt = getTileFactory().geoToPixel(((WaypointExt) wparray[i]).getPosition(), getZoom());
-			if (wppt.distance(lastClicked) < longestDistance ) {
+			if (wppt.distance(checkpt) < longestDistance ) {
 				w = (WaypointExt) wparray[i]; // if the waypoint is the closest record it
 			}
 		}
@@ -358,42 +448,10 @@ public class CustomMapKit extends JXMapViewer {
 	}
 	
 	/**
-	 * The MouseClick class implements the MouseListener interface and handles the 
-	 * user right-clicking on the map by opening an appropriate popup menu depending
-	 * on whether or not the user clicked on an existing waypoint.
-	 * @author Chad
+	 * getCoder() returns a reference to the Geocode instance object in the mapkit.
+	 * @return returns a reference to a Geocode object
 	 */
-	private class MouseClick implements MouseListener {
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (e.getButton() == MouseEvent.BUTTON3) { // user right-clicked
-				Point2D topcorner = getViewportBounds().getLocation(); // find the point to offset by
-				// calculate the actual clicked point on the map
-				lastClicked = new Point2D.Double(topcorner.getX()+e.getX(),topcorner.getY()+e.getY());
-				
-				// determine if the user clicked near and existing waypoint
-				WaypointExt temp = waypointNear(lastClicked);
-				if (temp == null) 	// if they didnt click on a waypoint
-									// let them create a new waypoint
-					popupAdd.show(e.getComponent(), e.getX(), e.getY());
-				else {				// if they did click on a waypoint
-									// change where they clicked to register as 
-									// them having clicked on the nearest waypoint
-					lastClicked = getTileFactory().geoToPixel(temp.getPosition(), getZoom());
-					popupRemove.show(e.getComponent(), e.getX(), e.getY());
-				}
-			}
-			
-		}
-
-		// empty methods to satisfy the interface
-		@Override
-		public void mouseEntered(MouseEvent e) {}
-		@Override
-		public void mouseExited(MouseEvent e) {}
-		@Override
-		public void mousePressed(MouseEvent e) {}
-		@Override
-		public void mouseReleased(MouseEvent e) {}
+	public Geocode getCoder() {
+		return coder;
 	}
 }
