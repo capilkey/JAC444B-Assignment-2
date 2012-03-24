@@ -58,11 +58,11 @@ longitude = longi;
 //zoomFactor = zoom;
 boolean result = false;
 
-
-
 return result;
 
 }
+
+
 
 
 

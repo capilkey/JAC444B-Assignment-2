@@ -79,15 +79,14 @@ private void setUpMenuBar() {
 
 	    menuItem = new JMenuItem("Settings");
 		menuItem.addActionListener(new ActionListener(){
-
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO Auto-generated method stub
 				try {
 				  temp.add(setpanel, BorderLayout.CENTER);
-				  setpanel.setVisible(true);
-				  mapKit.setVisible(false);
-				  temp.validate();
+				  setpanel.setVisible(true);			//turn on settings panel
+				  mapKit.setVisible(false);				// turn off mapkit panel
+				  temp.validate();						//update the window with latest info
 	 			}
 					catch (Exception e){
 					e.printStackTrace();
