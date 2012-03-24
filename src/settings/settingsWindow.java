@@ -7,6 +7,7 @@ import java.awt.event.ItemListener;
 import java.io.BufferedWriter;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import javax.swing.*;
 
 import skchew.WPConfig2;
 import mapapp.*;
+import java.util.Scanner;
 
 
 
@@ -24,13 +26,24 @@ public class settingsWindow extends JPanel{
 	// define private radio buttons here for settings window
 	private JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
 	//button to save options and close window
-	 private JButton settingOk;
+	 private JButton settingOk,settingClose;
 	// array for options selected
-    private String[] optionsSet;
+    private String[] optionsSet	 =  {"on","on","on"};	//default the optionsSet array
+    
+    private JPanel p2;
 	
-	public settingsWindow(){   							//constructor for settings window
-               
-		optionsSet = new String [3];
+	public settingsWindow(){   								//constructor for settings window
+		try {												//try to read file containing settings
+			String savedOptions = readSetting();			// read the text file into string
+			System.out.println("Settings read from file are: "+ savedOptions);
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+			//settings file not found
+			System.out.println("file not found on computer");
+		}
+		
+		
 		// inner classes
 		   class RadioHandler implements ItemListener { // an inner class for radio buttons
 		             public void itemStateChanged(ItemEvent e) {
@@ -62,20 +75,47 @@ public class settingsWindow extends JPanel{
 						}}
 		   }// end of RadioHandler class
 		   
+		   // inner class for button handler in settings window
+		   class ButtonHandler implements ActionListener {
+		    	  public void actionPerformed(ActionEvent e)
+		    	  {
+		    		  
+		    		  // determine which button was pressed
+		    		  if (e.getSource() == settingClose){
+		    			 //p2.setVisible(false);//********************************************************problem
+		    			 //p2.validate();	
+		    			  System.out.println("close window");
+		    		  }
+		    		  if (e.getSource() == settingOk){
+		    		    try {
+						  createTxtFile();					//create a text file to save settings		
+				    	} catch (IOException e1) {
+						// TODO Auto-generated catch block
+					    	e1.printStackTrace();
+					  }
+		    		  }
+		          }
+		      }; 
+		   
+		   
+		   
+		   
 		   
 		// set up okay button
 		   settingOk = new JButton("OK");
+		   settingClose = new JButton("Close");
 	    // create a panel for the button , may add a second button
 		   JPanel setButton = new JPanel();   
-		   setButton.setLayout(new GridLayout(1,2));  
+		   setButton.setLayout(new GridLayout(3,2));  
 		   setButton.add(settingOk);
+		   setButton.add(settingClose);
 		   add(setButton);						// add panel
 		   
 		//***** set up radio buttons in panel
 		// mini map panel on/off radio buttons
 			 miniMapOn = new JRadioButton("On",true);
 			 miniMapOff = new JRadioButton("Off");
-			 optionsSet[0] = "on";						//update setting array		
+			 //optionsSet[0] = "on";						//update setting array		
 		//group radio buttons
 			 ButtonGroup miniMapgroup = new ButtonGroup();
 			 miniMapgroup.add(miniMapOn);
@@ -124,34 +164,23 @@ public class settingsWindow extends JPanel{
 		
 		// register one listener with all radio buttons
 	      RadioHandler options = new RadioHandler();
-
 	      miniMapOn.addItemListener( options );
 	      miniMapOff.addItemListener( options );	
 	      ZoomButtonOn.addItemListener( options );
 	      ZoomButtonOff.addItemListener( options );
 	      ZoomsliderOn.addItemListener( options );
 	      ZoomsliderOff.addItemListener( options );
+	      
+	      
 		
 	    // register button listener
-	      settingOk.addActionListener( new ActionListener() {
-	    	  public void actionPerformed(ActionEvent e)
-	    	  {
-	    		  System.out.println( Arrays.toString( optionsSet ) );
-	    		  try {
-					createTxtFile();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-	          }
-	      });
-	     
-	
-	      
+	      ButtonHandler settingsButtons = new ButtonHandler();
+	      settingOk.addActionListener(settingsButtons);
+	      settingClose.addActionListener(settingsButtons);
 	      
 	      
 	      //panel p2 holds the panels for each group of items
-				JPanel p2 = new JPanel();
+				 p2 = new JPanel();
 				// one row and 5 columns
 				p2.setLayout(new GridLayout(3,1));
 				p2.add(miniMap);
@@ -167,9 +196,13 @@ public class settingsWindow extends JPanel{
 	}
 	private void createTxtFile() throws IOException{
 		Writer writer = null;
-			
+		String text = "";	
 		try {
-			String text = "setting content";
+			for(int i = 0; i< optionsSet.length; i++){
+				text += ( optionsSet[i] );		//optionsSet contains last saved settings
+				text += ",";
+			}
+			System.out.println(text);
 			File file = new File("settings.txt");
 			writer = new BufferedWriter(new FileWriter(file));
 			writer.write(text);
@@ -189,8 +222,23 @@ public class settingsWindow extends JPanel{
 		
 	}	
 	
-	
-	
-	
+
+
+	  String readSetting() throws IOException {
+	 
+	    StringBuilder text = new StringBuilder();
+	    String NL = System.getProperty("line.separator");
+	    Scanner scanner = new Scanner(new FileInputStream("settings.txt"));
+	    try {
+	      while (scanner.hasNextLine()){
+	        text.append(scanner.nextLine() + NL);
+	      }
+	    }
+	    finally{
+	      scanner.close();
+	    }
+    
+	   return text.toString(); 
+	  }
 
 }
