@@ -49,12 +49,10 @@ public MainWindow(){
 
 super("Map App");
 setLayout (new BorderLayout());
-setpanel = new settingsWindow(); 
 setVisible(true);
 setUpMenuBar();
-setUpSettingsScreen();
 setUpMap();
-
+setUpSettingsScreen();
 
 /*******************add back in 
 /*try {
@@ -84,7 +82,7 @@ private void setUpSettingsScreen(){
 }
 
 
-// all listeners and logic ******************************************************************************
+// all listeners and logic 
 public class settingsWindow extends JPanel{
 	// define private radio buttons here for settings window
 	  JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
@@ -92,13 +90,13 @@ public class settingsWindow extends JPanel{
 	  JButton settingOk,settingClose;
 	// array for options selected
       String[] optionsSet	 =  {"true","true","true"};	//default the optionsSet array
-      String savedOptions;							//constructor for settings window
+      String[] savedOptions;							//constructor for settings window
       JPanel p2;
     
     settingsWindow(){	
 	try {												//try to read file containing settings
 		savedOptions = readSetting();					// read the text file into string
-		System.out.println("Settings read from file are: "+ savedOptions);
+		System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2] );
 	} catch (IOException e2) {
 		// TODO Auto-generated catch block
 		e2.printStackTrace();
@@ -107,10 +105,7 @@ public class settingsWindow extends JPanel{
 		//savedOptions = "true,true,true,";						// file not found, use default settings
 	}
 	
-	// check to see if the saved options are valid for the setting being set 
- if (ValidateTextfile(savedOptions)){ // true is saved options are valid
-	 
- }
+
 	
 	// inner classes
 	   class RadioHandler implements ItemListener { // an inner class for radio buttons
@@ -167,7 +162,7 @@ public class settingsWindow extends JPanel{
 	    		  }
 	          }
 	      }; 
-	   
+
 	   
 	// set up okay button
 	   settingOk = new JButton("OK");
@@ -181,7 +176,8 @@ public class settingsWindow extends JPanel{
 	   
 	//***** set up radio buttons in panel
 	// mini map panel on/off radio buttons
-		 miniMapOn = new JRadioButton("On",true);
+		 miniMapOn = new JRadioButton("On");
+		 miniMapOn.setSelected(true);
 		 miniMapOff = new JRadioButton("Off");
 		 //optionsSet[0] = "on";						//update setting array		
 	//group radio buttons
@@ -256,7 +252,16 @@ public class settingsWindow extends JPanel{
 			p2.add(Zoomslider);
 			p2.add(setButton);
 			add(p2);
-
+			
+  // check to see if the saved options are valid for the setting being set 
+		    if (ValidateTextfile(savedOptions)){							//if saved options array is valid
+		    	System.arraycopy(savedOptions, 0, optionsSet, 0, 3);		//copy the it to the array used in memory
+		        refreshMap();												//call methods to update mapkit
+		        setRadioButtons();										//********************************************************************************
+		       System.out.println("text file is valid");
+		     }else{
+		    	 System.out.println("text file is NOT valid");
+		     }
 }	// end of constructor for setpanel
 	
     
@@ -267,7 +272,23 @@ private void refreshMap(){
 	  mapKit.setZoomSliderVisible(Boolean.parseBoolean(optionsSet[2]));
 }
 
-	
+private void setRadioButtons() {  //sets the state of the radio buttons 	
+	if (optionsSet[0].equals("true")){											//miniMap radio button is on
+		miniMapOn.setSelected(true);
+	}else{
+		miniMapOff.setSelected(true);
+	}
+	if (optionsSet[1].equals("true")){											//Zoombutton radio button is on
+		ZoomButtonOn.setSelected(true);
+	}else{
+		ZoomButtonOff.setSelected(true);
+	}
+	if (optionsSet[2].equals("true")){											//Zoomslider radio button is on
+		ZoomsliderOn.setSelected(true);
+	}else{
+		ZoomsliderOff.setSelected(true);
+	}
+}
 // write settings to text file on local drive	
 	private void createTxtFile() throws IOException{
 		Writer writer = null;
@@ -299,27 +320,42 @@ private void refreshMap(){
 	
 
 // read settings from text file saved on local drive
-	  String readSetting() throws IOException {
-	 
-	    StringBuilder text = new StringBuilder();
+	  String[] readSetting() throws IOException {
+	    //String localArray[];
+		StringBuffer text = new StringBuffer();
 	    String NL = System.getProperty("line.separator");
 	    Scanner scanner = new Scanner(new FileInputStream("settings.txt"));
 	    try {
 	      while (scanner.hasNextLine()){
-	        text.append(scanner.nextLine() + NL);
+	         text.append(scanner.nextLine() + NL);
 	      }
 	    }
 	    finally{
 	      scanner.close();
 	    }
-    
-	   return text.toString(); 
+	    String nick = text.toString();
+        System.out.println("here" + java.util.Arrays.toString(nick.split(",")));
+        String[] settings = nick.split(",");
+	   return settings;
 	  }
 }
 
 
-private boolean ValidateTextfile(String s){ //**********************************************************
-	return true; // temp setting, to be updated
+private boolean ValidateTextfile(String[] savedOptions){ // check text file for valid entries
+	boolean valid = true;
+	if (savedOptions.length != 4){
+		System.out.println("number of elements is array: " + savedOptions.length);
+		valid = false;									// wrong number of elements
+	}
+	for (int i=0; i< 3;i++) {							// check first 3 elements for true or false
+		if (savedOptions[i].equals("true") || savedOptions[i].equals("false")){
+			//  do nothing
+		}else{
+			valid = false;								//option is not valid for the radio buttons
+		}
+		
+	}
+	return valid;
 }
 
 private void setUpMenuBar() {
