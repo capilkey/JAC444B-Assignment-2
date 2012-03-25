@@ -22,27 +22,31 @@ import java.util.Scanner;
 
 
 
+//public class settingsWindow extends JPanel{
 public class settingsWindow extends JPanel{
 	// define private radio buttons here for settings window
 	private JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
 	//button to save options and close window
 	 private JButton settingOk,settingClose;
 	// array for options selected
-    private String[] optionsSet	 =  {"on","on","on"};	//default the optionsSet array
+    private String[] optionsSet	 =  {"true","true","true"};	//default the optionsSet array
+    
+    private String savedOptions;
     
     private JPanel p2;
 	
 	public settingsWindow(){   								//constructor for settings window
 		try {												//try to read file containing settings
-			String savedOptions = readSetting();			// read the text file into string
+			savedOptions = readSetting();					// read the text file into string
 			System.out.println("Settings read from file are: "+ savedOptions);
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 			//settings file not found
 			System.out.println("file not found on computer");
+			//savedOptions = "true,true,true,";						// file not found, use default settings
 		}
-		
+	
 		
 		// inner classes
 		   class RadioHandler implements ItemListener { // an inner class for radio buttons
@@ -51,27 +55,27 @@ public class settingsWindow extends JPanel{
 						if ( (e.getSource() == miniMapOff)  &&
 		                      (e.getStateChange() == ItemEvent.SELECTED) ) {
                          	 System.out.println("mm off");
-                         	optionsSet[0] = "off";  
+                         	optionsSet[0] = "false";  
 						}else if ( (e.getSource() == miniMapOn) &&
 		                          (e.getStateChange() == ItemEvent.SELECTED) ){
 		                	       System.out.println("mm on"); 
-		                	       optionsSet[0] = "on"; 
+		                	       optionsSet[0] = "true"; 
 						}else if ( (e.getSource() == ZoomButtonOn) &&
 		                          (e.getStateChange() == ItemEvent.SELECTED) ){
 		                	       System.out.println("zoom on"); 
-		                	       optionsSet[1] = "on"; 
+		                	       optionsSet[1] = "true"; 
 						}else if ( (e.getSource() == ZoomButtonOff) &&
 		                          (e.getStateChange() == ItemEvent.SELECTED) ){
 		                	       System.out.println("zoom off"); 
-		                	       optionsSet[1] = "off"; 
+		                	       optionsSet[1] = "false"; 
 						}else if ( (e.getSource() == ZoomsliderOn) &&
 		                          (e.getStateChange() == ItemEvent.SELECTED) ){
 		                	       System.out.println("zoomslider on"); 
-		                	       optionsSet[2] = "on"; 
+		                	       optionsSet[2] = "true"; 
 						}else if ( (e.getSource() == ZoomsliderOff) &&
 		                          (e.getStateChange() == ItemEvent.SELECTED) ){
 		                	       System.out.println("zoomslider off"); 
-		                	       optionsSet[2] = "off"; 
+		                	       optionsSet[2] = "false"; 
 						}}
 		   }// end of RadioHandler class
 		   
@@ -194,6 +198,10 @@ public class settingsWindow extends JPanel{
 				
 		
 	}
+	
+	
+	
+// write settings to text file on local drive	
 	private void createTxtFile() throws IOException{
 		Writer writer = null;
 		String text = "";	
@@ -223,7 +231,7 @@ public class settingsWindow extends JPanel{
 	}	
 	
 
-
+// read settings from text file saved on local drive
 	  String readSetting() throws IOException {
 	 
 	    StringBuilder text = new StringBuilder();
