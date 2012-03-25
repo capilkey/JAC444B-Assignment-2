@@ -83,15 +83,17 @@ private void setUpSettingsScreen(){
      setpanel = new settingsWindow(); 
 }
 
+
+// all listeners and logic ******************************************************************************
 public class settingsWindow extends JPanel{
 	// define private radio buttons here for settings window
-	 JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
+	  JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
 	//button to save options and close window
 	  JButton settingOk,settingClose;
 	// array for options selected
-    String[] optionsSet	 =  {"true","true","true"};	//default the optionsSet array
-    String savedOptions;							//constructor for settings window
-    JPanel p2;
+      String[] optionsSet	 =  {"true","true","true"};	//default the optionsSet array
+      String savedOptions;							//constructor for settings window
+      JPanel p2;
     
     settingsWindow(){	
 	try {												//try to read file containing settings
@@ -104,13 +106,16 @@ public class settingsWindow extends JPanel{
 		System.out.println("file not found on computer");
 		//savedOptions = "true,true,true,";						// file not found, use default settings
 	}
-
+	
+	// check to see if the saved options are valid for the setting being set 
+ if (ValidateTextfile(savedOptions)){ // true is saved options are valid
+	 
+ }
 	
 	// inner classes
 	   class RadioHandler implements ItemListener { // an inner class for radio buttons
 	             public void itemStateChanged(ItemEvent e) {
-
-					if ( (e.getSource() == miniMapOff)  &&
+          	       if ( (e.getSource() == miniMapOff)  &&
 	                      (e.getStateChange() == ItemEvent.SELECTED) ) {
                     	 System.out.println("mm off");
                     	optionsSet[0] = "false";  
@@ -145,15 +150,16 @@ public class settingsWindow extends JPanel{
 	    		  // determine which button was pressed
 	    		  if (e.getSource() == settingClose){
 	    			 temp.remove(setpanel);
-	    			  //temp.remove(setpanel, BorderLayout.CENTER); 
-	    			 p2.setVisible(false);
+	    			 //temp.remove(setpanel, BorderLayout.CENTER); 
+	    			 setpanel.setVisible(false);
 	    			 mapKit.setVisible(true);
-	    			 p2.validate();	
-	    			  System.out.println("close window");
+	    			 temp.validate();
+	     			 System.out.println("close window");
 	    		  }
 	    		  if (e.getSource() == settingOk){
+	    			  refreshMap();						//make the mapkik method called with array settings
 	    		    try {
-					  createTxtFile();					//create a text file to save settings		
+					  createTxtFile();					//create a text file to save settings						                               		  
 			    	} catch (IOException e1) {
 					// TODO Auto-generated catch block
 				    	e1.printStackTrace();
@@ -161,9 +167,6 @@ public class settingsWindow extends JPanel{
 	    		  }
 	          }
 	      }; 
-	   
-	   
-	   
 	   
 	   
 	// set up okay button
@@ -254,9 +257,15 @@ public class settingsWindow extends JPanel{
 			p2.add(setButton);
 			add(p2);
 
-}	
+}	// end of constructor for setpanel
 	
-
+    
+    
+private void refreshMap(){
+	  mapKit.setMiniMapVisible(Boolean.parseBoolean(optionsSet[0]));
+	  mapKit.setZoomButtonsVisible(Boolean.parseBoolean(optionsSet[1]));
+	  mapKit.setZoomSliderVisible(Boolean.parseBoolean(optionsSet[2]));
+}
 
 	
 // write settings to text file on local drive	
@@ -309,6 +318,10 @@ public class settingsWindow extends JPanel{
 }
 
 
+private boolean ValidateTextfile(String s){ //**********************************************************
+	return true; // temp setting, to be updated
+}
+
 private void setUpMenuBar() {
 	JMenuBar menuBar;
 	JMenu menu;
@@ -327,7 +340,7 @@ private void setUpMenuBar() {
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO Auto-generated method stub
 				try {
-				  temp.add(setpanel, BorderLayout.CENTER);//*************************************************************
+				  temp.add(setpanel, BorderLayout.CENTER); // panel is removed when closed so need to add
      			  setpanel.setVisible(true);			//turn on settings panel
 				  mapKit.setVisible(false);				// turn off mapkit panel
 				  temp.validate();						//update the window with latest info
@@ -368,7 +381,6 @@ private void setUpMap() {
 mapKit = new JXMapKit();
 mapKit.setVisible(true);
 mapKit.setDefaultProvider(DefaultProviders.OpenStreetMaps);
-mapKit.setZoomButtonsVisible(false);
 add(mapKit, BorderLayout.CENTER);
 temp.validate();	
 }
