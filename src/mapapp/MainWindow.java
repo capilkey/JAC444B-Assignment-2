@@ -19,6 +19,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -30,6 +31,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeEvent;  
+import javax.swing.event.ChangeListener;  
+
+
 import org.jdesktop.swingx.JXMapKit;
 import org.jdesktop.swingx.JXMapKit.DefaultProviders;
 
@@ -88,15 +95,17 @@ public class settingsWindow extends JPanel{
 	  JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
 	//button to save options and close window
 	  JButton settingOk,settingClose;
+	//Slider bar for settings window  
+	  JSlider zoomLevel;
 	// array for options selected, changes when screen options are changed by user
-      String[] optionsSet	 =  {"true","true","true"};	//default the optionsSet array
+      String[] optionsSet	 =  {"true","true","true","8"};	//default the optionsSet array
       String[] savedOptions;							//array for setting in text file to be read into
       JPanel p2;										//panel for all options settings
     
     settingsWindow(){	
 	try {												//try to read file containing settings
 		savedOptions = readSetting();					// read the text file into string
-		System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2] );
+		System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2]+savedOptions[3] );
 	} catch (IOException e2) {							//file could not be read
 		// TODO Auto-generated catch block
 		e2.printStackTrace();
@@ -142,6 +151,7 @@ public class settingsWindow extends JPanel{
 					}}
 	   }// end of RadioHandler class
 	   
+	   
 	   // inner class for button handler in settings window
 	   class ButtonHandler implements ActionListener {
 	    	  public void actionPerformed(ActionEvent e)
@@ -150,7 +160,6 @@ public class settingsWindow extends JPanel{
 	    		  // determine which button was pressed
 	    		  if (e.getSource() == settingClose){
 	    			 temp.remove(setpanel);
-	    			 //temp.remove(setpanel, BorderLayout.CENTER); 
 	    			 setpanel.setVisible(false);
 	    			 mapKit.setVisible(true);
 	    			 temp.validate();
@@ -166,9 +175,38 @@ public class settingsWindow extends JPanel{
 				  }
 	    		  }
 	          }
-	      }; 
+	      };// end of button handler 
+	      
+// set up slider
+	      zoomLevel  = new JSlider(JSlider.HORIZONTAL,1,16,8);  // min,max,default level
+	      zoomLevel.setBorder(BorderFactory.createTitledBorder("Zoom Level"));
+	      zoomLevel.setMajorTickSpacing(3);
+	      zoomLevel.setMinorTickSpacing(1);
+	      zoomLevel.setSnapToTicks(true);
 
-	   
+	      zoomLevel.setPaintTicks(true);
+	      zoomLevel.setPaintLabels(true);
+	      add(zoomLevel);
+
+	
+	      // Register a change listener  
+	      zoomLevel.addChangeListener(new ChangeListener() {  
+	          // This method is called whenever the slider's value is changed  
+	          public void stateChanged(ChangeEvent evt) {  
+	              JSlider slider = (JSlider)evt.getSource();  
+	        
+	              if (!slider.getValueIsAdjusting()) {  
+	                  // Get new value  
+	                  int value = slider.getValue();  
+	                  System.out.println("Slider Value: " + value);  
+	                  optionsSet[3] = "" + value;
+	              }  
+	          }  
+	      });
+	      
+	      
+	
+      
 	// set up okay button
 	   settingOk = new JButton("OK");
 	   settingClose = new JButton("Close");
@@ -260,9 +298,10 @@ public class settingsWindow extends JPanel{
 			
 			  // check to see if the saved options are valid for the setting being set 
 		    if (ValidateTextfile(savedOptions)){							//if saved options array is valid
-		    	System.arraycopy(savedOptions, 0, optionsSet, 0, 3);		//copy the it to the array used in memory
+		    	System.arraycopy(savedOptions, 0, optionsSet, 0, 4);		//copy the it to the array used in memory
 		        refreshMap();												//call methods to update mapkit
-		        setRadioButtons();										//********************************************************************************
+		        setRadioButtons();		
+		        setSlider();
 		       System.out.println("text file is valid");
 		     }else{
 		    	 System.out.println("text file is NOT valid");
@@ -276,8 +315,11 @@ private void refreshMap(){
 	  mapKit.setMiniMapVisible(Boolean.parseBoolean(optionsSet[0]));
 	  mapKit.setZoomButtonsVisible(Boolean.parseBoolean(optionsSet[1]));
 	  mapKit.setZoomSliderVisible(Boolean.parseBoolean(optionsSet[2]));
+	  mapKit.setZoom(Integer.parseInt(optionsSet[3]));
 }
-
+private void setSlider(){
+	zoomLevel.setValue(Integer.parseInt(optionsSet[3]));
+}
 private void setRadioButtons() {  //sets the state of the radio buttons 	
 	if (optionsSet[0].equals("true")){											//miniMap radio button is on
 		miniMapOn.setSelected(true);
@@ -349,7 +391,7 @@ private void setRadioButtons() {  //sets the state of the radio buttons
 
 private boolean ValidateTextfile(String[] savedOptions){ // check text file for valid entries
 	boolean valid = true;
-	if (savedOptions.length != 4){
+	if (savedOptions.length != 5){
 		System.out.println("number of elements is array: " + savedOptions.length);
 		valid = false;									// wrong number of elements
 	}
