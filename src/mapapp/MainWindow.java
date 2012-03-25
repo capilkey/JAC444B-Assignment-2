@@ -51,8 +51,8 @@ super("Map App");
 setLayout (new BorderLayout());
 setVisible(true);
 setUpMenuBar();
-setUpMap();
-setUpSettingsScreen();
+setUpMap();								//mapkit is created	
+setUpSettingsScreen();					//settings screen is created
 
 /*******************add back in 
 /*try {
@@ -78,7 +78,7 @@ setSize(800, 400);
 
 //Container temp = this;
 private void setUpSettingsScreen(){
-     setpanel = new settingsWindow(); 
+     setpanel = new settingsWindow();  //settings screen created and set up
 }
 
 
@@ -88,22 +88,27 @@ public class settingsWindow extends JPanel{
 	  JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
 	//button to save options and close window
 	  JButton settingOk,settingClose;
-	// array for options selected
+	// array for options selected, changes when screen options are changed by user
       String[] optionsSet	 =  {"true","true","true"};	//default the optionsSet array
-      String[] savedOptions;							//constructor for settings window
-      JPanel p2;
+      String[] savedOptions;							//array for setting in text file to be read into
+      JPanel p2;										//panel for all options settings
     
     settingsWindow(){	
 	try {												//try to read file containing settings
 		savedOptions = readSetting();					// read the text file into string
 		System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2] );
-	} catch (IOException e2) {
+	} catch (IOException e2) {							//file could not be read
 		// TODO Auto-generated catch block
 		e2.printStackTrace();
-		//settings file not found
+		try {
+			createTxtFile();							//create a new file because could not read or find one
+			savedOptions = readSetting();				//read in the saved options from file just created
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println("file not found on computer");
-		//savedOptions = "true,true,true,";						// file not found, use default settings
-	}
+		}
 	
 
 	
@@ -253,7 +258,7 @@ public class settingsWindow extends JPanel{
 			p2.add(setButton);
 			add(p2);
 			
-  // check to see if the saved options are valid for the setting being set 
+			  // check to see if the saved options are valid for the setting being set 
 		    if (ValidateTextfile(savedOptions)){							//if saved options array is valid
 		    	System.arraycopy(savedOptions, 0, optionsSet, 0, 3);		//copy the it to the array used in memory
 		        refreshMap();												//call methods to update mapkit
@@ -262,6 +267,7 @@ public class settingsWindow extends JPanel{
 		     }else{
 		    	 System.out.println("text file is NOT valid");
 		     }
+		     
 }	// end of constructor for setpanel
 	
     
