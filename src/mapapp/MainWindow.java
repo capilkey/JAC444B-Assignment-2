@@ -51,7 +51,8 @@ import skchew.*;
 public class MainWindow extends JFrame {
 JXMapKit mapKit;				
 settingsWindow setpanel;
-Container temp = this;
+JFrame temp = this;
+//Container temp = this;
 public MainWindow(){
 
 super("Map App");
@@ -61,15 +62,15 @@ setUpMenuBar();
 setUpMap();								//mapkit is created	
 setUpSettingsScreen();					//settings screen is created
 
-/*******************add back in 
-/*try {
+/*
+try {
 WPConfig panel = new WPConfig(); // waypoint config panel all
 add(panel, BorderLayout.CENTER);
 }
 catch (Exception e){
 e.printStackTrace();
 }
-**************************************/
+*/
 
 try {
 WayPoint panel = new WayPoint(); // waypoint right panel
@@ -182,6 +183,7 @@ public class settingsWindow extends JPanel{
 	      zoomLevel.setBorder(BorderFactory.createTitledBorder("Zoom Level"));
 	      zoomLevel.setMajorTickSpacing(3);
 	      zoomLevel.setMinorTickSpacing(1);
+	      zoomLevel.setToolTipText("Change Magnification of Map View");
 	      zoomLevel.setSnapToTicks(true);
 
 	      zoomLevel.setPaintTicks(true);
@@ -209,10 +211,12 @@ public class settingsWindow extends JPanel{
       
 	// set up okay button
 	   settingOk = new JButton("OK");
+	   settingOk.setToolTipText("Apply Current Settings and Save");
 	   settingClose = new JButton("Close");
+	   settingClose.setToolTipText("Return To Map With Last Saved Settings");
    // create a panel for the button , may add a second button
 	   JPanel setButton = new JPanel();   
-	   setButton.setLayout(new GridLayout(3,2));  
+	   setButton.setLayout(new GridLayout(3,2,1,1)); 
 	   setButton.add(settingOk);
 	   setButton.add(settingClose);
 	   add(setButton);						// add panel
@@ -289,10 +293,11 @@ public class settingsWindow extends JPanel{
      //panel p2 holds the panels for each group of items
 			 p2 = new JPanel();
 			// one row and 5 columns
-			p2.setLayout(new GridLayout(3,1));
+			p2.setLayout(new GridLayout(3,1,22,22));
 			p2.add(miniMap);
 			p2.add(Zoombutton);
 			p2.add(Zoomslider);
+			p2.add(zoomLevel);
 			p2.add(setButton);
 			add(p2);
 			
@@ -466,6 +471,8 @@ mapKit = new JXMapKit();
 mapKit.setVisible(true);
 mapKit.setDefaultProvider(DefaultProviders.OpenStreetMaps);
 add(mapKit, BorderLayout.CENTER);
+temp.setLocation(200,200);
+temp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 temp.validate();	
 }
 
