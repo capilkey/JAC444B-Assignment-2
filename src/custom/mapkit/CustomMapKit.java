@@ -4,14 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Point2D;
 import java.io.File;
@@ -40,7 +38,6 @@ import org.jdesktop.swingx.mapviewer.DefaultTileFactory;
 import org.jdesktop.swingx.mapviewer.GeoPosition;
 import org.jdesktop.swingx.mapviewer.TileFactory;
 import org.jdesktop.swingx.mapviewer.TileFactoryInfo;
-import org.jdesktop.swingx.mapviewer.Waypoint;
 import org.jdesktop.swingx.mapviewer.WaypointPainter;
 import org.jdesktop.swingx.painter.Painter;
 
@@ -56,6 +53,7 @@ import custom.waypoint.WaypointExt;
  */
 public class CustomMapKit extends JXMapViewer {
 	final private JXMapViewer miniMap = new JXMapViewer();
+	final private JButton plus = new JButton(), minus = new JButton();
 	final private JSlider jsZoom = new JSlider();
 	final private JPopupMenu popupAdd = new JPopupMenu();
 	final private JPopupMenu popupRemove = new JPopupMenu();
@@ -213,7 +211,6 @@ public class CustomMapKit extends JXMapViewer {
 	 */
 	private void setupZoomButtons() {
 		// the plus button increases the zooms one more level in
-		JButton plus = new JButton();
 		plus.setIcon( new ImageIcon("resources/plus.png") ); // icon grabbed from JXMapKit
 		plus.addActionListener(new ActionListener() {
 			@Override
@@ -224,7 +221,6 @@ public class CustomMapKit extends JXMapViewer {
 		});
 		
 		// the minus button reduces the zoom by one level
-		JButton minus = new JButton();
 		minus.setIcon( new ImageIcon("resources/minus.png") ); // icon grabbed from JXMapKit
 		minus.addActionListener(new ActionListener() {
 			@Override
@@ -453,5 +449,18 @@ public class CustomMapKit extends JXMapViewer {
 	 */
 	public Geocode getCoder() {
 		return coder;
+	}
+	
+	public void setMiniMapVisible(boolean visible) {
+		miniMap.setVisible(visible);
+	}
+	
+	public void setZoomButtonsVisible(boolean visible) {
+		plus.setVisible(visible);
+		minus.setVisible(visible);
+	}
+	
+	public void setZoomSliderVisible(boolean visible) {
+		jsZoom.setVisible(visible);
 	}
 }
