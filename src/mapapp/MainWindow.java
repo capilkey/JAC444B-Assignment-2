@@ -5,6 +5,7 @@ package mapapp;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
@@ -29,7 +30,7 @@ import skchew.*;
 public class MainWindow extends JFrame {
 	JXMapKit mapKit;
 	JMenuBar menuBar;
-
+	WPConfig wpConfig;
 	
 	/**
 	 * 
@@ -37,13 +38,15 @@ public class MainWindow extends JFrame {
 	public MainWindow(){
 
 		super("Map App");
+		wpConfig = new WPConfig();
+		wpConfig.setVisible(true);
 		setVisible(true);
 
 		setUpMenuBar();
 		
 		setUpMap();
 		
-
+/*
 		try {
 			WPConfig panel = new WPConfig(); // waypoint config panel all				
 			add(panel, BorderLayout.CENTER);
@@ -51,10 +54,11 @@ public class MainWindow extends JFrame {
 		catch (Exception e){
 			e.printStackTrace();
 			}  
-	
+*/	
 		try {
 			WayPoint panel = new WayPoint(); // waypoint right panel
 			add(panel, BorderLayout.EAST);
+	
 		}
 		catch (Exception e){
 			e.printStackTrace();
@@ -79,6 +83,18 @@ public class MainWindow extends JFrame {
 		
 		menuItem = new JMenuItem("WayPoint Configuration");
 		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e){
+				if (e.getActionCommand() == "WayPoint Configuration") {
+					add(wpConfig, BorderLayout.CENTER);
+					wpConfig.setVisible(true);
+					mapKit.setVisible(false);
+					validate();
+				}
+				
+			}
+			});
 		
 		menuItem = new JMenuItem("Exit");
 		menu.add(menuItem);
