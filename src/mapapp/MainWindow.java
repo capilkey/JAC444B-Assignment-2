@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.BorderFactory;
@@ -47,6 +48,8 @@ import javax.swing.event.ListSelectionListener;
 
 import org.jdesktop.swingx.mapviewer.GeoPosition;
 
+import skchew.Country;
+
 
 import custom.mapkit.CustomMapKit;
 
@@ -62,8 +65,10 @@ public class MainWindow extends JFrame {
 	private JComboBox<String> country;
 	private SettingsWindow setpanel;
 	private WPConfig wpConfig;
+
 	private JButton jb1, jb2, jb3, jb4, jb5;
 	private WayPoint wpQuick;
+
 	/**
 	 * 
 	 */
@@ -80,29 +85,9 @@ public class MainWindow extends JFrame {
 		setpanel = new SettingsWindow();  //settings screen created and set up
 		
 		wpConfig = new WPConfig();		  // waypoint configurations
-		
+			
 		wpQuick = new WayPoint();	// waypoint quick panel
 		add(wpQuick, BorderLayout.EAST);
-		
-		JLabel label = new JLabel ("WayPoint Quick Links");
-		
-		
-		jb1 = new JButton("1");
-		jb2 = new JButton("2");
-		jb3 = new JButton("3");
-		jb4 = new JButton("4");
-		jb5 = new JButton("5");
-		
-		JPanel wpbPanel = new JPanel();
-		
-		wpbPanel.add(label);
-		wpbPanel.setLayout (new GridLayout (6,1));
-		
-		wpbPanel.add(jb1); 
-		wpbPanel.add(jb2);
-		wpbPanel.add(jb3);
-		wpbPanel.add(jb4);
-		wpbPanel.add(jb5);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -218,7 +203,7 @@ public class MainWindow extends JFrame {
 		case 1:
 			remove(setpanel);
 			remove(wpConfig);
-			add(wpQuick, BorderLayout.EAST);
+			add(wpQuick, BorderLayout.EAST); // re-add quick links
 			setpanel.setVisible(false); //turn on settings panel
 			mapKit.setVisible(true); // turn off mapkit panel
 			break;
@@ -235,13 +220,13 @@ public class MainWindow extends JFrame {
 		case 3:
 			remove(setpanel);
 			remove(wpQuick);
-			add(wpConfig, BorderLayout.CENTER);
+			add(wpConfig, BorderLayout.CENTER); // waypoint config panel
 			wpConfig.setVisible(true);
 			mapKit.setVisible(false); // turn off mapkit panel
 			break;
 		}
-		
-		validate(); //update the window with latest info
+		this.repaint();
+	//	validate(); //update the window with latest info
 	}
 	
 	public void close() {
@@ -751,40 +736,76 @@ public class MainWindow extends JFrame {
 
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub		
+				wpQuick = new WayPoint(selModel);
 				swapMainPanel(1);
+
 			}
 		} // CloseListener
 		
 	}
 
 	public class WayPoint extends JPanel{
-
+	private ArrayList<JButton> wpBtnArray;
+	
 			public WayPoint () {
-
+				wpBtnArray = new ArrayList<JButton>();
+				
 				JLabel label = new JLabel ("Country Quick Links");
-
-				jb1 = new JButton("1");
-				jb2 = new JButton("2");
-				jb3 = new JButton("3");
-				jb4 = new JButton("4");
-				jb5 = new JButton("5");
+				
+				wpBtnArray.add(new JButton("Empty Slot"));
+				wpBtnArray.add(new JButton("Empty Slot"));
+				wpBtnArray.add(new JButton("Empty Slot"));
+				wpBtnArray.add(new JButton("Empty Slot"));
+				wpBtnArray.add(new JButton("Empty Slot"));
 				
 				JPanel panel = new JPanel();
 				
 				panel.add(label);
 				panel.setLayout (new GridLayout (6,1));
 				
-				panel.add(jb1); 
-				panel.add(jb2);
-				panel.add(jb3);
-				panel.add(jb4);
-				panel.add(jb5);
-				
-				setSize(100, 500);
+				for (int i = 0; i < wpBtnArray.size(); i++) {
+					panel.add((JButton)wpBtnArray.get(i));
+				}
+				panel.setSize(200, 500);
+				add(panel);
+			}
 
+			public WayPoint(DefaultListModel selModel) {
+				// TODO Auto-generated constructor stub
+	//		private JList selected;
+				wpBtnArray = new ArrayList<JButton>();
+			
+				JLabel label = new JLabel ("Country Quick Links");
+				JPanel panel = new JPanel();
+				panel.add(label);
+				panel.setLayout (new GridLayout (10,1));
+					
+				if (selModel.size() > 0){
+					
+					for (int i = 0; i < selModel.size(); i++) {
+						wpBtnArray.add(new JButton((String)selModel.getElementAt(i)));
+					}
+					
+					for (int i = 0; i < wpBtnArray.size(); i++) {
+						panel.add((JButton)wpBtnArray.get(i));
+					}
+				}
+				else{
+					wpBtnArray.add(new JButton("Empty Slot"));
+					wpBtnArray.add(new JButton("Empty Slot"));
+					wpBtnArray.add(new JButton("Empty Slot"));
+					wpBtnArray.add(new JButton("Empty Slot"));
+					wpBtnArray.add(new JButton("Empty Slot"));
+					
+					for (int i = 0; i < wpBtnArray.size(); i++) {
+						panel.add((JButton)wpBtnArray.get(i));
+					}
+				}
+				
+				panel.setSize(200, 500);
 				add(panel);
 
-			}
+		}
 	}
 	
 	/**
