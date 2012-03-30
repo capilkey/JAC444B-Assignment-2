@@ -72,9 +72,11 @@ public class MainWindow extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		searchField.requestFocusInWindow();
-		
-		setSize(800, 800);
-		this.setMinimumSize(new Dimension(700, 700));
+		// TODO get screen resolution and set resolution 
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	
+		this.setMinimumSize(new Dimension((int)(screenSize.width * 0.5),(int)(screenSize.height * 0.5)));
+		setSize((int)(screenSize.width * 0.75),(int)(screenSize.height * 0.75));
 	}
 	
 	private void setUpMenuBar() {
@@ -159,8 +161,8 @@ public class MainWindow extends JFrame {
 				//System.out.println(mapKit.getCoder().getLon());
 			} else {
 				
-				System.out.println(mapKit.getCoder().getErrCode());
-				System.out.println(mapKit.getCoder().getErrDesc());
+				//System.out.println(mapKit.getCoder().getErrCode());
+				//System.out.println(mapKit.getCoder().getErrDesc());
 			}
 		}
 		
@@ -171,13 +173,15 @@ public class MainWindow extends JFrame {
 		switch (panelToShow) {
 		// show map
 		case 1:
-			remove(setpanel);
+			//TODO change Sabrina's code to match this stuff
+			//remove(setpanel);
+			add(mapKit, BorderLayout.CENTER); // panel is removed when closed so need to add
 			setpanel.setVisible(false); //turn on settings panel
 			mapKit.setVisible(true); // turn off mapkit panel
 			break;
 		// show settings
 		case 2:
-			remove(setpanel);		
+			//remove(mapKit);		
 			add(setpanel, BorderLayout.CENTER); // panel is removed when closed so need to add
 			setpanel.setVisible(true); //turn on settings panel
 			mapKit.setVisible(false); // turn off mapkit panel
@@ -207,7 +211,8 @@ public class MainWindow extends JFrame {
 		public SettingsWindow() {
 			try { //try to read file containing settings
 				savedOptions = readSetting(); // read the text file into string
-				System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2]+savedOptions[3] );
+				//TODO
+				//System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2]+savedOptions[3] );
 			} catch (IOException e2) { //file could not be read
 				e2.printStackTrace();
 				try {
@@ -216,7 +221,8 @@ public class MainWindow extends JFrame {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				System.out.println("file not found on computer");
+				//TODO
+				//System.out.println("file not found on computer");
 			}
 
 			// set up slider
@@ -241,7 +247,8 @@ public class MainWindow extends JFrame {
 					if (!slider.getValueIsAdjusting()) {
 						// Get new value
 						int value = slider.getValue();
-						System.out.println("Slider Value: " + value);
+						//TODO
+						//System.out.println("Slider Value: " + value);
 						optionsSet[3] = "" + value;
 					}
 				}
@@ -345,9 +352,10 @@ public class MainWindow extends JFrame {
 				refreshMap(); //call methods to update mapkit
 				setRadioButtons();
 				setSlider();
-				System.out.println("text file is valid");
+				//TODO 				
+				//System.out.println("text file is valid");
 			} else{
-				System.out.println("text file is NOT valid");
+				//System.out.println("text file is NOT valid");
 			}
 
 		} // end of constructor for setpanel
@@ -390,7 +398,8 @@ public class MainWindow extends JFrame {
 					text += ( optionsSet[i] ); //optionsSet contains last saved settings
 					text += ",";
 				}
-				System.out.println(text);
+				//TODO
+				//System.out.println(text);
 				File file = new File("settings.txt");
 				writer = new BufferedWriter(new FileWriter(file));
 				writer.write(text);
@@ -410,9 +419,8 @@ public class MainWindow extends JFrame {
 		}
 
 		//TODO is this method supposed to be public or private?
-		
 		// read settings from text file saved on local drive
-		String[] readSetting() throws IOException {
+		private String[] readSetting() throws IOException {
 			//String localArray[];
 			StringBuffer text = new StringBuffer();
 			String NL = System.getProperty("line.separator");
@@ -426,7 +434,8 @@ public class MainWindow extends JFrame {
 				scanner.close();
 			}
 			String nick = text.toString();
-			System.out.println("here" + java.util.Arrays.toString(nick.split(",")));
+			//TODO
+			//System.out.println("here" + java.util.Arrays.toString(nick.split(",")));
 			String[] settings = nick.split(",");
 			return settings;
 		}
@@ -434,7 +443,8 @@ public class MainWindow extends JFrame {
 		private boolean ValidateTextfile(String[] savedOptions) { // check text file for valid entries
 			boolean valid = true;
 			if (savedOptions.length != 5){
-				System.out.println("number of elements is array: " + savedOptions.length);
+				//TODO
+				//System.out.println("number of elements is array: " + savedOptions.length);
 				valid = false; // wrong number of elements
 			}
 			for (int i=0; i< 3;i++) { // check first 3 elements for true or false
@@ -453,27 +463,29 @@ public class MainWindow extends JFrame {
 			public void itemStateChanged(ItemEvent e) {
 				if ( (e.getSource() == miniMapOff) &&
 						(e.getStateChange() == ItemEvent.SELECTED) ) {
-					System.out.println("mm off");
+					//TODO comment out all SYSTEM.out
+					
+					//System.out.println("mm off");
 					optionsSet[0] = "false";
 				} else if ( (e.getSource() == miniMapOn) &&
 						(e.getStateChange() == ItemEvent.SELECTED) ) {
-					System.out.println("mm on");
+					//System.out.println("mm on");
 					optionsSet[0] = "true";
 				} else if ( (e.getSource() == ZoomButtonOn) &&
 						(e.getStateChange() == ItemEvent.SELECTED) ) {
-					System.out.println("zoom on");
+					//System.out.println("zoom on");
 					optionsSet[1] = "true";
 				} else if ( (e.getSource() == ZoomButtonOff) &&
 						(e.getStateChange() == ItemEvent.SELECTED) ){
-					System.out.println("zoom off");
+					//System.out.println("zoom off");
 					optionsSet[1] = "false";
 				} else if ( (e.getSource() == ZoomsliderOn) &&
 						(e.getStateChange() == ItemEvent.SELECTED) ){
-					System.out.println("zoomslider on");
+					//System.out.println("zoomslider on");
 					optionsSet[2] = "true";
 				} else if ( (e.getSource() == ZoomsliderOff) &&
 						(e.getStateChange() == ItemEvent.SELECTED) ){
-					System.out.println("zoomslider off");
+					//System.out.println("zoomslider off");
 					optionsSet[2] = "false";
 				}
 			}
@@ -485,6 +497,7 @@ public class MainWindow extends JFrame {
 				// determine which button was pressed
 				if (e.getSource() == settingClose){
 					swapMainPanel(1);
+					//TODO
 					System.out.println("close window");
 				}
 				if (e.getSource() == settingOk){
