@@ -68,11 +68,20 @@ private WPConfig wpConfig;
 private ArrayList<Country> CountriesList;
 private JButton jb1, jb2, jb3, jb4, jb5;
 private WayPoint wpQuick;
-String[] countries = { "Australia", "Belgium", "Canada", "China", "Denmark", "Egypt", "France", "Germany", "Greece",
-		"Hong Kong", "Hungary", "India", "Italy", "Japan", "Kenya", "Libya", "Mexico", "New Zealand", "North Korean", "Philippines", "Russia", 
-		"South Africa", "South Korea", "Spain", "Turkey", "United Kingdom", "United States", "Vietnam"	};
-double[] lati = { -25.274398, 50.503887 };
-double[] longi = {133.775136, 4.469936 };
+private String[] countries= { "Australia", "Belgium", "Canada", "China", "England",
+		"France", "Germany", "Greece", "Hong Kong", "Hungary", "India", "Italy",
+		"Japan", "Mexico", "North Korea", "Philippines", "Russia", "South Africa",
+		"South Korea", "Spain", "Turkey", "United States"	};
+private double[] lati = { -25.274398, 50.503887, 56.130366, 35.86166, 52.355518, 
+		46.227638, 51.165691, 39.074208, 22.396428,  47.162494, 
+		20.593684, 41.87194, 36.204824, 23.634501, 40.339852,
+		12.879721, 61.52401, -30.559482, 35.907757,
+		40.463667, 38.963745, 37.09024 };
+private double[] longi = {133.775136, 4.469936, -106.346771, 104.195397, -1.17432,
+		2.213749, 10.451526, 21.824312, 114.109497, 19.503304,
+		78.96288, 12.56738, 138.252924, -102.552784, 127.510093,
+		121.774017, 105.318756, 22.937506, 127.766922,
+		-3.74922, 35.243322, -95.712891 };
 
 /**
 *
@@ -210,8 +219,6 @@ System.out.println(mapKit.getCoder().getErrCode());
 System.out.println(mapKit.getCoder().getErrDesc());
 }
 }
-
-
 }
 
 public void swapMainPanel(int panelToShow) {
@@ -228,7 +235,7 @@ break;
 case 2:
 remove(setpanel);
 remove(wpConfig);
-remove(wpQuick);
+wpQuick.setVisible(false);
 add(setpanel, BorderLayout.CENTER); // panel is removed when closed so need to add
 setpanel.setVisible(true); //turn on settings panel
 mapKit.setVisible(false); // turn off mapkit panel
@@ -236,7 +243,7 @@ break;
 // show wp config
 case 3:
 remove(setpanel);
-remove(wpQuick);
+wpQuick.setVisible(false);
 add(wpConfig, BorderLayout.CENTER); // waypoint config panel
 wpConfig.setVisible(true);
 mapKit.setVisible(false); // turn off mapkit panel
@@ -573,7 +580,7 @@ private static final String clearString = "Clear all";
 
 private String[] countries= { "Australia", "Belgium", "Canada", "China", "Denmark", "Egypt", "France", "Germany", "Greece",
 "Hong Kong", "Hungary", "India", "Italy", "Japan", "Kenya", "Libya", "Mexico", "New Zealand", "North Korean", "Philippines", "Russia",
-"South Africa", "South Korea", "Spain", "Turkey", "United Kingdom", "United States", "Vietnam" };
+"South Africa", "South Korea", "Spain", "Turkey", "United States", "Vietnam" };
 
 public WPConfig() {
 
@@ -721,11 +728,9 @@ public void actionPerformed (ActionEvent e)
 {
 Object temp;
 
-if (!listAll.isSelectionEmpty()){
-if (listSelect.getLastVisibleIndex() <= 5){
+if (!listAll.isSelectionEmpty() && listAll.getComponentCount() <= 10){
 temp = listAll.getSelectedValue();
 selModel.addElement(temp);
-}
 }
 }
 } // AddListener
@@ -755,7 +760,6 @@ public void actionPerformed(ActionEvent e) {
 // TODO Auto-generated method stub
 wpQuick = new WayPoint(selModel);
 swapMainPanel(1);
-
 }
 } // CloseListener
 
@@ -763,6 +767,7 @@ swapMainPanel(1);
 
 public class WayPoint extends JPanel{
 private ArrayList<JButton> wpBtnArray;
+private JPanel panel;
 
 public WayPoint () {
 wpBtnArray = new ArrayList<JButton>();
@@ -775,7 +780,7 @@ wpBtnArray.add(new JButton("Empty Slot"));
 wpBtnArray.add(new JButton("Empty Slot"));
 wpBtnArray.add(new JButton("Empty Slot"));
 
-JPanel panel = new JPanel();
+panel = new JPanel();
 
 panel.add(label);
 panel.setLayout (new GridLayout (6,1));
@@ -783,9 +788,16 @@ panel.setLayout (new GridLayout (6,1));
 for (int i = 0; i < wpBtnArray.size(); i++) {
 panel.add((JButton)wpBtnArray.get(i));
 }
-panel.setSize(200, 500);
+
+panel.setSize(100, 700);
 add(panel);
 }
+
+
+// update method to update old panel
+// button.setText instead of creating new buttons;
+// button.getText 
+
 
 public WayPoint(DefaultListModel selModel) {
 // TODO Auto-generated constructor stub
@@ -793,18 +805,29 @@ public WayPoint(DefaultListModel selModel) {
 wpBtnArray = new ArrayList<JButton>();
 
 JLabel label = new JLabel ("Country Quick Links");
-JPanel panel = new JPanel();
+panel = new JPanel();
 panel.add(label);
-panel.setLayout (new GridLayout (10,1));
+panel.setLayout (new GridLayout (11,1));
 
 if (selModel.size() > 0){
 
-for (int i = 0; i < selModel.size(); i++) {
+for (int i = 0; i < selModel.size() && i < 10; i++) {
 wpBtnArray.add(new JButton((String)selModel.getElementAt(i)));
 }
 
 for (int i = 0; i < wpBtnArray.size(); i++) {
 panel.add((JButton)wpBtnArray.get(i));
+wpBtnArray.get(i).addActionListener(new ActionListener() {
+	public void actionPerformed(ActionEvent e) {
+		for (int j = 0; j < CountriesList.size(); j++) {
+			if (CountriesList.equals(e) ){
+	//			setAddressLocation(new GeoPosition(CountriesList.get(j).lati, CountriesList.get(j).longi));
+				
+			}
+		}
+	}
+});
+
 }
 }
 else{
@@ -819,8 +842,11 @@ panel.add((JButton)wpBtnArray.get(i));
 }
 }
 
-panel.setSize(200, 500);
+panel.setSize(100, 700);
+panel.setMinimumSize(new Dimension(100, 700));
 add(panel);
+
+////  mapkit.setlocation
 
 }
 }
