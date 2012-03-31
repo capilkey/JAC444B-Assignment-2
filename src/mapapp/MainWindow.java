@@ -739,7 +739,8 @@ public void valueChanged(ListSelectionEvent e) {
 /* author Sabrina
  * The RemListener class implements ActionListener and handles the
  * remove button action event. When the remove button is triggered,
- * the selected index is removed from the listSelect
+ * the selected index is removed from the listSelect. If all selections are 
+ * manually removed, the clear button is disabled. 
  */
 class RemListener implements ActionListener {
 private JButton button;
@@ -756,6 +757,9 @@ remBtn.setEnabled(true);
 
 listSelect.setSelectedIndex(index);
 listSelect.ensureIndexIsVisible(index);
+}
+else if (selModel.getSize() == 0){
+	clearBtn.setEnabled(false);
 }
 }
 } // RemListener
