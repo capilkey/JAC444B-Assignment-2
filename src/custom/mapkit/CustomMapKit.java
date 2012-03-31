@@ -398,7 +398,7 @@ public class CustomMapKit extends JXMapViewer {
 		System.out.println(wps.contains(wp));
 		System.out.println(wps.remove(wp));
 		System.out.println(wps.iterator().next().equals(wp));
-		// WHY THE FUCK DOENST THIS WORK
+		//Dont know why the above won't work
 		*/
 		
 		// I have to jump through some hoops to try and remove a Waypoint because
