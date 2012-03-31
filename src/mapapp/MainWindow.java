@@ -31,6 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
@@ -109,7 +110,19 @@ public class MainWindow extends JFrame {
 		// Help Menu
 		menu = new JMenu("Help");
 		menuBar.add(menu);
+		//TODO
+		
 		menuItem = new JMenuItem("About");
+		menuItem.addActionListener( new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(mapKit, 
+					    "Right-mouse click on map\n - to add a waypoint at current location\n- to re-center map\n" +
+					    "Use Mouse wheel to Zoom\n" +
+					    "\nMap Viewer Version 1.0\n" +
+					    "Written by:\nChad Pilkey\nSabrina Chew\nNick Russell","Map App Help",JOptionPane.PLAIN_MESSAGE);
+		
+			}});// end of About menu item
 		menu.add(menuItem);
 		
 		
