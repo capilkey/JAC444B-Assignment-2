@@ -48,9 +48,6 @@ import javax.swing.event.ListSelectionListener;
 
 import org.jdesktop.swingx.mapviewer.GeoPosition;
 
-import skchew.Country;
-
-
 import custom.mapkit.CustomMapKit;
 
 /**
@@ -64,11 +61,13 @@ private JMenuBar menuBar;
 private JTextField searchField;
 private JComboBox<String> country;
 private SettingsWindow setpanel;
-private WPConfig wpConfig;
-private ArrayList<Country> CountriesList;
+
+//TODO FOLLOWING 6
+
+private WPConfig wpConfig; 
 private JButton jb1, jb2, jb3, jb4, jb5;
 private WayPoint wpQuick;
-private String[] countries= { "Australia", "Belgium", "Canada", "China", "England",
+private String[] countries = { "Australia", "Belgium", "Canada", "China", "England",
 		"France", "Germany", "Greece", "Hong Kong", "Hungary", "India", "Italy",
 		"Japan", "Mexico", "North Korea", "Philippines", "Russia", "South Africa",
 		"South Korea", "Spain", "Turkey", "United States"	};
@@ -82,6 +81,7 @@ private double[] longi = {133.775136, 4.469936, -106.346771, 104.195397, -1.1743
 		78.96288, 12.56738, 138.252924, -102.552784, 127.510093,
 		121.774017, 105.318756, 22.937506, 127.766922,
 		-3.74922, 35.243322, -95.712891 };
+// END TO-DO 
 
 /**
 *
@@ -98,12 +98,12 @@ setUpSearchPanel();
 
 setpanel = new SettingsWindow(); //settings screen created and set up
 
-wpConfig = new WPConfig(); // waypoint configurations
+//TODO FOLLOWING SETUP
 
+wpConfig = new WPConfig(); // waypoint configurations
 wpQuick = new WayPoint(); // waypoint quick panel
 add(wpQuick, BorderLayout.EAST);
-
-setUpCountries();
+// END TO-DO WAYPOINT SETUP
 
 setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -111,16 +111,6 @@ searchField.requestFocusInWindow();
 
 setSize(800, 800);
 this.setMinimumSize(new Dimension(700, 700));
-}
-
-private void setUpCountries() {
-	// TODO Auto-generated method stub
-	CountriesList = new ArrayList<Country>();
-	
-	for (int i = 0; i < lati.length; i++){
-		CountriesList.add(new Country(countries[i], lati[i], longi[i]));
-	}
-	System.out.println(CountriesList);	
 }
 
 private void setUpMenuBar() {
@@ -142,14 +132,16 @@ swapMainPanel(2);
 });
 menu.add(menuItem);
 
+//TODO FOLLOWING MENU ITEM 
+// MENU ITEM FOR WAYPOINT CONFIG
 menuItem = new JMenuItem("WayPoint Configuration");
 menu.add(menuItem);
 menuItem.addActionListener(new ActionListener() {
-
 public void actionPerformed(ActionEvent e){
 swapMainPanel(3);
 }
-});
+}); 
+// END TO DO FOR MENU ITEM
 
 menuItem = new JMenuItem("Exit");
 menuItem.addActionListener( new ActionListener() {
@@ -165,7 +157,6 @@ menu = new JMenu("Help");
 menuBar.add(menu);
 menuItem = new JMenuItem("About");
 menu.add(menuItem);
-
 
 menuBar.setVisible(true);
 setJMenuBar(menuBar);
@@ -221,6 +212,7 @@ System.out.println(mapKit.getCoder().getErrDesc());
 }
 }
 
+// TODO ADD CASE 3 FOR SWAP AND ADD MAPKIT TO CENTER
 public void swapMainPanel(int panelToShow) {
 switch (panelToShow) {
 // show map
@@ -565,8 +557,13 @@ e1.printStackTrace();
 };// end of button handler
 }
 
+//TODO WPCONFIG PANEL CLASS
+/* author Sabrina
+ * The WPConfig class extends the JPanel class and implements ListSelectionListener
+ * forming the necessary components dedicated to customizing the waypoint quick links. 
+ */
 public class WPConfig extends JPanel implements ListSelectionListener {
-
+	
 private JList listAll;
 private JList listSelect;
 private DefaultListModel allModel;
@@ -578,12 +575,12 @@ private static final String remString = "<< Remove";
 private static final String closeString = "Close";
 private static final String clearString = "Clear all";
 
-private String[] countries= { "Australia", "Belgium", "Canada", "China", "Denmark", "Egypt", "France", "Germany", "Greece",
-"Hong Kong", "Hungary", "India", "Italy", "Japan", "Kenya", "Libya", "Mexico", "New Zealand", "North Korean", "Philippines", "Russia",
-"South Africa", "South Korea", "Spain", "Turkey", "United States", "Vietnam" };
-
 public WPConfig() {
-
+//TODO WPCONFIG CONSTRUCTOR
+/* author Sabrina
+ * The only constructor for the WPConfig class and takes no arguments.
+ * It handles the setup of the waypoint configurations panel
+ */
 JPanel jpMain = new JPanel();
 jpMain.setLayout(new BorderLayout());
 
@@ -605,8 +602,7 @@ jpHead.add (new JLabel ("Your quick link list"));
 
 jpMain.add(jpHead, BorderLayout.NORTH);
 
-
-////// LIST BODY ALL////////
+////// LIST ALL////////
 JPanel jpList1 = new JPanel(); // list all, button panel, list select
 jpList1.setLayout(new BorderLayout());
 
@@ -639,17 +635,18 @@ AddListener addListener = new AddListener(addBtn);
 addBtn.setActionCommand(addString);
 addBtn.addActionListener(addListener);
 jpButtons1.add(addBtn, BorderLayout.NORTH);
+addBtn.setEnabled(false);
 
 remBtn = new JButton (remString);
 RemListener remListener = new RemListener(remBtn);
 remBtn.setActionCommand(remString);
 remBtn.addActionListener(remListener);
 jpButtons1.add(remBtn, BorderLayout.SOUTH);
+remBtn.setEnabled(false);
 
 jpMain.add(jpButtons1, BorderLayout.CENTER);
 
-////// LIST BODY SELECTED ////
-
+////// LIST SELECTED ////
 JPanel jpList2 = new JPanel(); // list all, button panel, list select
 jpList2.setLayout(new BorderLayout());
 listSelect = new JList (selModel);
@@ -660,19 +657,48 @@ JScrollPane listScroller2 = new JScrollPane(listSelect);
 listScroller2.setPreferredSize(new Dimension(150,95));
 jpList2.add (listScroller2, BorderLayout.EAST);
 
+listSelect.addListSelectionListener(new ListSelectionListener() {
+
+	
+	/**
+	 * The setupMouseEvents() method assigns the mouseClicked and mouseMoved events. 
+	 * When the user right-clicks on the map an appropriate popup menu is opened 
+	 * depending on whether or not the user clicked on an existing waypoint. When 
+	 * the mouse is moved a label is displayed if near a waypoint that has an address.
+	 * @author Chad
+	 */
+	
+/* The valueChanged method handles changes to the lists in the 
+ * waypoint configuration panel, enabling the remove button when a
+ * index has been selected from the listSelect list
+ * author Sabrina
+ */
+	public void valueChanged(ListSelectionEvent e) {	
+		if (e.getValueIsAdjusting() == false){
+			if (listSelect.getSelectedIndex() == -1) {
+				remBtn.setEnabled(false);
+			}
+			else {
+				remBtn.setEnabled(true);
+			}
+		}
+	}
+	
+});
+
 jpMain.add(jpList2, BorderLayout.EAST);
-
-
-// BUTTONS RESET CLOSE //
 
 JPanel jpButtons2 = new JPanel();
 jpButtons2.setLayout(new GridLayout(2,3));
 
+//BUTTON RESET //
 clearBtn = new JButton(clearString);
 ClearListener clearListener = new ClearListener(clearBtn);
 clearBtn.setActionCommand(clearString);
 clearBtn.addActionListener(clearListener);
+clearBtn.setEnabled(false);
 
+//BUTTON CLOSE //
 closeBtn = new JButton (closeString);
 CloseListener closeListener = new CloseListener(closeBtn);
 closeBtn.setActionCommand(closeString);
@@ -690,22 +716,40 @@ jpMain.add(jpButtons2, BorderLayout.SOUTH);
 add(jpMain);
 }
 
+//TODO VALUECHANGED METHOD
+/* The valueChanged method handles changes to the lists in the 
+ * waypoint configuration panel, enabling the add button when a
+ * index has been selected from the listAll list
+ * author Sabrina
+ */
 public void valueChanged(ListSelectionEvent e) {
-// TODO Auto-generated method stub
-
+	if (e.getValueIsAdjusting() == false){
+		if (listAll.getSelectedIndex() == -1) {
+			// nothing selected
+			addBtn.setEnabled(false);
+		}
+		else {
+			// selected
+			addBtn.setEnabled(true);
+		}
+	}
 }
 
+//TODO CLASS REMLISTENER
+/* author Sabrina
+ * The RemListener class implements ActionListener and handles the
+ * remove button action event. When the remove button is triggered,
+ * the selected index is removed from the listSelect
+ */
 class RemListener implements ActionListener {
 private JButton button;
 
 public RemListener(JButton button) {
 this.button = button;
-
 }
 public void actionPerformed (ActionEvent e) {
 int index = listSelect.getSelectedIndex();
 selModel.remove(index);
-
 
 if (!listSelect.isSelectionEmpty()) {
 remBtn.setEnabled(true);
@@ -716,25 +760,41 @@ listSelect.ensureIndexIsVisible(index);
 }
 } // RemListener
 
+//TODO CLASS ADDLISTENER
+/* author Sabrina
+ * The AddListener class implements ActionListener and handles the
+ * add button action event. When the add button is triggered,
+ * the selected index is added to the listSelect and the clear button 
+ * is enabled. Once there are 10 selections, the add button is disabled.
+ */
 class AddListener implements ActionListener {
 private boolean status = false;
 private JButton button;
 
 public AddListener(JButton button) {
 this.button = button;
-
 }
 public void actionPerformed (ActionEvent e)
 {
 Object temp;
 
-if (!listAll.isSelectionEmpty() && listAll.getComponentCount() <= 10){
+if (!listAll.isSelectionEmpty() && selModel.getSize() < 10){
 temp = listAll.getSelectedValue();
 selModel.addElement(temp);
+clearBtn.setEnabled(true);
+}
+else if (selModel.getSize() == 10){
+	addBtn.setEnabled(false);
 }
 }
 } // AddListener
 
+//TODO CLASS CLEARLISTENER
+/* author Sabrina
+ * The ClearListener class implements ActionListener and handles the
+ * clear button action event. When the clear button is triggered,
+ * the selected index is cleared from the listSelect
+ */
 class ClearListener implements ActionListener {
 private JButton button;
 
@@ -743,33 +803,48 @@ this.button = button;
 }
 
 public void actionPerformed(ActionEvent e) {
-// TODO Auto-generated method stub
 selModel.clear();
+clearBtn.setEnabled(false);
 }
 } // ClearListener
 
+//TODO CLASS CLOSELISTENER
+/* author Sabrina
+ * The CloseListener class implements ActionListener and handles the
+ * close button action event. When the close button is triggered,
+ * the WayPoint(selModel) is constructed and returns to
+ * the main map view using the swapMainPanel(1) method.
+ */
 class CloseListener implements ActionListener {
 private JButton button;
 
 public CloseListener(JButton button){
 this.button = button;
-
 }
 
 public void actionPerformed(ActionEvent e) {
-// TODO Auto-generated method stub
 wpQuick = new WayPoint(selModel);
 swapMainPanel(1);
 }
 } // CloseListener
 
-}
+} // END CLASS WPCONFIG
 
+//TODO WAYPOINT CLASS
+/* author Sabrina
+ * The Waypoint class extends the JPanel class and handles the quick link list
+ * of the custom selection through the WPConfig panel.
+ */
 public class WayPoint extends JPanel{
 private ArrayList<JButton> wpBtnArray;
 private JPanel panel;
 
+/* author Sabrina
+ * The WayPoint() default constructor sets the quick links as empty slots 
+ * and redirection is not set. 
+ */
 public WayPoint () {
+//TODO WAYPOINT DEFAULT CONSTRUCTOR
 wpBtnArray = new ArrayList<JButton>();
 
 JLabel label = new JLabel ("Country Quick Links");
@@ -793,62 +868,68 @@ panel.setSize(100, 700);
 add(panel);
 }
 
-
-// update method to update old panel
-// button.setText instead of creating new buttons;
-// button.getText 
-
-
+/* author Sabrina
+ * The WayPoint(DefaultListModel) constructor sets the quick links with the 
+ * selected, and adds the listeners. If the size of the selected list is not 
+ * greater than 0, this constructor sets the links back to the default links.
+ */
 public WayPoint(DefaultListModel selModel) {
-// TODO Auto-generated constructor stub
-// private JList selected;
+//TODO WAYPOINT CONSTRUCTOR
 wpBtnArray = new ArrayList<JButton>();
-
 JLabel label = new JLabel ("Country Quick Links");
 panel = new JPanel();
 panel.add(label);
 panel.setLayout (new GridLayout (11,1));
 
 if (selModel.size() > 0){
-
-for (int i = 0; i < selModel.size() && i < 10; i++) {
-wpBtnArray.add(new JButton((String)selModel.getElementAt(i)));
-}
-
-for (int i = 0; i < wpBtnArray.size(); i++) {
-panel.add((JButton)wpBtnArray.get(i));
-wpBtnArray.get(i).addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent e) {
-		for (int j = 0; j < CountriesList.size(); j++) {
-			if (CountriesList.equals(e) ){
-	//			setAddressLocation(new GeoPosition(CountriesList.get(j).lati, CountriesList.get(j).longi));
-				
-			}
-		}
+	for (int i = 0; i < selModel.size() && i < 10; i++) {
+		wpBtnArray.add(new JButton((String)selModel.getElementAt(i)));
 	}
-});
 
-}
+	for (int i = 0; i < wpBtnArray.size(); i++) {
+		panel.add((JButton)wpBtnArray.get(i));
+		BtnListener btnListener = new BtnListener(wpBtnArray.get(i));
+		wpBtnArray.get(i).addActionListener(btnListener);
+	}
 }
 else{
-wpBtnArray.add(new JButton("Empty Slot"));
-wpBtnArray.add(new JButton("Empty Slot"));
-wpBtnArray.add(new JButton("Empty Slot"));
-wpBtnArray.add(new JButton("Empty Slot"));
-wpBtnArray.add(new JButton("Empty Slot"));
+	wpBtnArray.add(new JButton("Empty Slot"));
+	wpBtnArray.add(new JButton("Empty Slot"));
+	wpBtnArray.add(new JButton("Empty Slot"));
+	wpBtnArray.add(new JButton("Empty Slot"));
+	wpBtnArray.add(new JButton("Empty Slot"));
 
-for (int i = 0; i < wpBtnArray.size(); i++) {
-panel.add((JButton)wpBtnArray.get(i));
-}
+	for (int i = 0; i < wpBtnArray.size(); i++) {
+		panel.add((JButton)wpBtnArray.get(i));
+	}
 }
 
 panel.setSize(100, 700);
 panel.setMinimumSize(new Dimension(100, 700));
 add(panel);
-
-////  mapkit.setlocation
-
 }
+}
+
+//TODO BTNLISTENER FOR QUICK LINKS
+/* author Sabrina
+ * The BtnListener class implements ActionListener and handles redirection of the map
+ * when the quick list links are clicked. 
+ */
+class BtnListener implements ActionListener {
+private JButton button;
+
+	public BtnListener (JButton button) {
+		this.button = button;
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		for (int j = 0; j < countries.length; j++) {
+			if (countries[j].equals(e.getActionCommand()) ){
+				mapKit.setAddressLocation(new GeoPosition(lati[j], longi[j]));
+			}
+		}
+		mapKit.setZoom(12);
+	}
 }
 
 /**
