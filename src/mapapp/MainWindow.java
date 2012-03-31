@@ -195,7 +195,12 @@ public class MainWindow extends JFrame {
 		WindowEvent wev = new WindowEvent(this, WindowEvent.WINDOW_CLOSING);
         Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
 	}
-	
+	/**
+	 *  @author Nick
+	 *  @param optionsSet    An array containing the options selected for the settings of the map viewer. They are defined to a default state
+	 *                       and updated each time the 'OK' button is pressed
+	 *  @param savedOptions  An array containing the contents of a text file called settings.txt.                  
+	 */
 	public class SettingsWindow extends JPanel {
 		// define private radio buttons here for settings window
 		private JRadioButton miniMapOff, miniMapOn, ZoomButtonOn, ZoomButtonOff,ZoomsliderOn,ZoomsliderOff;
@@ -420,6 +425,12 @@ public class MainWindow extends JFrame {
 
 		//TODO is this method supposed to be public or private?
 		// read settings from text file saved on local drive
+		/**@author Nick
+		 * 
+		 * @param  text is the variable which stores the text from the file settings.txt
+		 * @return returns a comma delimited string containing the settings read from the file settings.txt
+		 * @throws IOException if there is an error while reading the file settings.yxy
+		 */
 		private String[] readSetting() throws IOException {
 			//String localArray[];
 			StringBuffer text = new StringBuffer();
@@ -439,7 +450,13 @@ public class MainWindow extends JFrame {
 			String[] settings = nick.split(",");
 			return settings;
 		}
-		
+		/**
+		 * @author Nick
+		 * @param savedOptions is an array passed to the method.  The array contains the string read from the settings.txt file.  
+		 *                     the file was comma delimited so the array should have 5 elements from the file. Only the first 4 are used as settings
+		 * @return valid  is a boolean value return <code>true</code> if array contains valid settings for the program
+		 *                will return <code> false </code> if there is an invalid number of elements or invalid values
+		 */
 		private boolean ValidateTextfile(String[] savedOptions) { // check text file for valid entries
 			boolean valid = true;
 			if (savedOptions.length != 5){
@@ -455,6 +472,7 @@ public class MainWindow extends JFrame {
 				}
 				
 			}
+			
 			return valid;
 		}
 		
