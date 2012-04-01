@@ -797,8 +797,7 @@ public class MainWindow extends JFrame {
 				if (listAll.getSelectedIndex() == -1) {
 					// nothing selected
 					addBtn.setEnabled(false);
-				}
-				else {
+				} else if (selModel.getSize() < 10) {
 					// selected
 					addBtn.setEnabled(true);
 				}
@@ -831,7 +830,7 @@ public class MainWindow extends JFrame {
 				} 
 				if (selModel.getSize() == 0) {
 					clearBtn.setEnabled(false);
-				} else if (selModel.getSize() <9 ) {
+				} else if (selModel.getSize() < 10 ) {
 					addBtn.setEnabled(true);
 				}
 			}
