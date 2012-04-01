@@ -213,7 +213,8 @@ public class MainWindow extends JFrame {
 			}
 		});
 		
-		searchField = new JTextField(20);	
+		searchField = new JTextField(20);
+		searchField.setToolTipText("Enter an Address or Postal Code");
 		searchField.addActionListener( new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				search();
