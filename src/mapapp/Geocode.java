@@ -1,3 +1,9 @@
+/* JAC444B Assignment 2
+ * Group: 4
+ * Authors:Chad Pilkey, Sabrina Chew, Nick Russell
+ * Date: 31-March-2012
+ */
+
 package mapapp;
 
 import java.io.IOException;
@@ -14,6 +20,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+/**
+ * The Geocode class serves as an interface between the geocoder.us 
+ * and geocoder.ca geocoding services and reverse-geocoding services
+ * @author Chad
+ *
+ */
 public class Geocode {
 	private double lat;
 	private double lon;
@@ -27,16 +39,29 @@ public class Geocode {
 	private DocumentBuilderFactory factory;	
 	private DocumentBuilder builder;
 	
+	/**
+	 * The default constructor handles the start up of the XML parser that 
+	 * is used to interpret the returned XML pages.
+	 * @author Chad
+	 */
 	public Geocode() {
 		factory = DocumentBuilderFactory.newInstance();
 		try {
 			builder = factory.newDocumentBuilder();
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/**
+	 * The reverseLookup method reverse-geocodes the passed latitude and 
+	 * longitude and uses the geocoder.ca service. It works with both 
+	 * Canadian and American locations.
+	 * @author Chad
+	 * @param la the latitude that you want to reverse-geocode
+	 * @param lo the longitude that you want to reverse-geocode
+	 * @return returns true if the lookup is successful, false otherwise
+	 */
 	public boolean reverseLookup(double la, double lo) {
 		boolean good = false;
 		
@@ -102,16 +127,22 @@ public class Geocode {
 			}
 			
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		return good;
 	}
 	
+	/**
+	 * The parseAddress method breaks down the passed address into it's parts
+	 * and sends them on to the lookUpLatLon methods. Works for both Canadian 
+	 * and American addresses.
+	 * @param address the address that you want to parse
+	 * @param country the country where the address is located
+	 * @return returns true if the parse and subsequent lookup was successful, false otherwise
+	 */
 	public boolean parseAddress(String address, String country) {
 		
 		if (country.equals("CAN")) {
@@ -160,6 +191,11 @@ public class Geocode {
 			return false;
 	}
 	
+	/**
+	 * The replaceSpaces method finds all the spaces in a string and replaces them with a '+'
+	 * @param s the string you want to search
+	 * @return returns the modified string
+	 */
 	private String replaceSpaces(String s) {
 		StringBuffer temp = new StringBuffer(s);
 		int i = temp.indexOf(" ");
@@ -171,6 +207,13 @@ public class Geocode {
 		return temp.toString();
 	}
 	
+	/**
+	 * the lookUpLatLonCAN method takes the parsed Canadian address and 
+	 * sends the pieces to geocoder.ca. It them parses the returned XML 
+	 * file and populates the instance variables of the Geocode class.
+	 * @param parts the array of strings that contain the parts of the address
+	 * @return returns true if the lookup was successful, false if there were errors
+	 */
 	private boolean lookUpLatLonCAN(String [] parts) {
 		boolean good = false;
 		
@@ -252,16 +295,21 @@ public class Geocode {
 			}
 		
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	    
 	    return good;
 	}
 	
+	/**
+	 * the lookUpLatLonUSA method takes an American address and sends 
+	 * it to geocoder.us. It them parses the returned XML file and 
+	 * populates the instance variables of the Geocode class.
+	 * @param address the American address to geocode
+	 * @return returns true if the lookup was successful, false if there were errors
+	 */
 	private boolean lookUpLatLonUSA(String address) {
 		
 		clear();
@@ -292,17 +340,18 @@ public class Geocode {
 				}
 			}
 			return true;
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
+		} catch (SAXException e) { // the geocode.us site returns an improper file if there's a problem
 			errCode = "004";
 			errDesc = "Address not found, please check your spelling.";
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
 	}
 	
+	/**
+	 * The clear method resets the instance variables to their starting values.
+	 */
 	private void clear() {
 		lat=0;
 		lon=0;
@@ -312,26 +361,50 @@ public class Geocode {
 		suggestion=null;
 	}
 	
+	/**
+	 * The getLat method retrieves the geocoded latitude
+	 * @return returns the geocoded latitude
+	 */
 	public double getLat() {
 		return lat;
 	}
 	
+	/**
+	 * The getLon method retrieves the geocoded longitude
+	 * @return returns the geocoded longitude
+	 */
 	public double getLon() {
 		return lon;
 	}
 	
+	/**
+	 * The getErrCode method retrieves the  error code
+	 * @return returns the error code
+	 */
 	public String getErrCode() {
 		return errCode;
 	}
 	
+	/**
+	 * The getErrDesc method retrieves the error description
+	 * @return returns the error description
+	 */
 	public String getErrDesc() {
 		return errDesc;
 	}
 	
+	/**
+	 * The getAddress method retrieves the reverse-geocoded address
+	 * @return returns the reverse-geocoded address
+	 */
 	public String getAddress() {
 		return address;
 	}
 	
+	/**
+	 * The getSuggestion method retrieves the geocoded suggestion for partial matches
+	 * @return returns the geocoded suggestion
+	 */
 	public String getSuggestion() {
 		return suggestion;
 	}
