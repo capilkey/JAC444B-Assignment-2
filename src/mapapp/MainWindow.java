@@ -1,6 +1,9 @@
-/**
- * 
+/* JAC444B Assignment 2
+ * Group: 4
+ * Authors:Chad Pilkey, Sabrina Chew, Nick Russell
+ * Date: 31-March-2012
  */
+
 package mapapp;
 
 import java.awt.BorderLayout;
@@ -50,8 +53,10 @@ import org.jdesktop.swingx.mapviewer.GeoPosition;
 import custom.mapkit.CustomMapKit;
 
 /**
+ * The MainWindow class extends the JFrame class and handles all 
+ * the user interfacing for our mapping application.
  * @author Chad, Sabrina, Nick
- *
+ * @see javax.swing.JFrame
  */
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
@@ -62,6 +67,7 @@ public class MainWindow extends JFrame {
 	private SettingsWindow setpanel;
 	private WPConfig wpConfig; 
 	private WayQuick wpQuick;
+	private JPanel searchBar;
 	private static final String[] countries = { "Australia", "Belgium", "Canada", "China", "England",
 			"France", "Germany", "Greece", "Hong Kong", "Hungary", "India", "Italy",
 			"Japan", "Mexico", "North Korea", "Philippines", "Russia", "South Africa",
@@ -77,7 +83,7 @@ public class MainWindow extends JFrame {
 			121.774017, 105.318756, 22.937506, 127.766922,
 			-3.74922, 35.243322, -95.712891 };
 	/**
-	 * 
+	 * The MainWindow default constructor sets up the frame in its proper configuration.
 	 */
 	public MainWindow(){
 		super("Map App");
@@ -103,8 +109,20 @@ public class MainWindow extends JFrame {
 		
 		setMinimumSize(new Dimension((int)(screenSize.width * 0.5),(int)(screenSize.height * 0.5)));
 		setSize((int)(screenSize.width * 0.75),(int)(screenSize.height * 0.75));
+		
+		// center the window on the screen
+	    int w = getSize().width;
+	    int h = getSize().height;
+	    int x = (screenSize.width-w)/2;
+	    int y = (screenSize.height-h)/2;
+	    setLocation(x, y);
 	}
 	
+	/**
+	 * The setUpMenuBar method handles the setup for all the parts of 
+	 * MainWindow's top menu bar.
+	 * @author Chad, Sabrina, Nick
+	 */
 	private void setUpMenuBar() {
 		JMenu menu;
 		JMenuItem menuItem;
@@ -147,8 +165,16 @@ public class MainWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JOptionPane.showMessageDialog(mapKit, 
-					    "Right-mouse click on map\n - to add a waypoint at current location\n- to re-center map\n" +
-					    "Use Mouse wheel to Zoom\n" +
+					    "Right-click on the main map\n" +
+					    "- to add a waypoint at current location\n" +
+					    "- remove an existing waypoint\n" +
+					    "- to re-center map\n" +
+					    "\nUse Mouse wheel to zoom\n" +
+					    "\nWhen searching for an address you\n" +
+					    "must use the abbreviated province or\n" +
+					    "state names, such as ON for Ontario.\n" +
+					    "Also when searching, using the postal\n" +
+					    "code returns the best results.\n" +
 					    "\nMap Viewer Version 1.0\n" +
 					    "Written by:\nChad Pilkey\nSabrina Chew\nNick Russell","Map App Help",JOptionPane.PLAIN_MESSAGE);
 		
@@ -161,6 +187,10 @@ public class MainWindow extends JFrame {
 		setJMenuBar(menuBar);
 	}
 	
+	/**
+	 * The setUpMap method handles the setup and initialization of the main map.
+	 * @author Chad, Sabrina, Nick
+	 */
 	private void setUpMap() {
 		mapKit = new CustomMapKit();		
 		mapKit.setVisible(true);
@@ -170,6 +200,11 @@ public class MainWindow extends JFrame {
 		add(mapKit, BorderLayout.CENTER);
 	}
 	
+	/** 
+	 * The setUpSearchPanel method handles the setup of the search bar at 
+	 * the bottom of the frame.
+	 * @author Chad
+	 */
 	private void setUpSearchPanel() {
 		JButton searchButton = new JButton( "Search" );
 		searchButton.addActionListener( new ActionListener() {
@@ -188,14 +223,19 @@ public class MainWindow extends JFrame {
 		String [] countries = { "CAN", "USA" };
 		country = new JComboBox<String>( countries );
 		
-		JPanel jp = new JPanel();
-		jp.setOpaque(false);
-		jp.add(searchField, BorderLayout.WEST);
-		jp.add(country, BorderLayout.CENTER);
-		jp.add(searchButton, BorderLayout.EAST);
-		add(jp, BorderLayout.SOUTH);
+		searchBar = new JPanel();
+		searchBar.setOpaque(false);
+		searchBar.add(searchField, BorderLayout.WEST);
+		searchBar.add(country, BorderLayout.CENTER);
+		searchBar.add(searchButton, BorderLayout.EAST);
+		add(searchBar, BorderLayout.SOUTH);
 	}
 	
+	/**
+	 * The search method handles the call to the Geocode class' methods to geocode 
+	 * the input address.
+	 * @author Chad
+	 */
 	public void search() {		
 		if (!searchField.getText().equals("") && country.getSelectedIndex() != -1) {
 			if (mapKit.getCoder().parseAddress(searchField.getText(), (String) country.getSelectedItem())) {
@@ -204,26 +244,36 @@ public class MainWindow extends JFrame {
 				////System.out.println(mapKit.getCoder().getLat());
 				////System.out.println(mapKit.getCoder().getLon());
 			} else {
-				
 				//System.out.println(mapKit.getCoder().getErrCode());
 				//System.out.println(mapKit.getCoder().getErrDesc());
+				String message = "Error: "+ mapKit.getCoder().getErrCode() + "\n" +
+								 mapKit.getCoder().getErrDesc();
+				if (mapKit.getCoder().getSuggestion() != null)
+					message += "\n\nDid you mean: " + mapKit.getCoder().getSuggestion();
+				
+				JOptionPane.showMessageDialog(mapKit, message,"Search Error",JOptionPane.PLAIN_MESSAGE);
 			}
 		}
-		
-		
 	}
 	
+	/**
+	 * The swapMainPanel method handles the swapping of the panel 
+	 * in view to the main map, the settings panel, and the quick
+	 * waypoint config panel.
+	 * @author Chad, Sabrina, Nick
+	 * @param panelToShow the panel that you want visible (1, 2, 3)
+	 */
 	public void swapMainPanel(int panelToShow) {
 		switch (panelToShow) {
 		// show map
 		case 1:
-			//remove(setpanel);
 			add(mapKit, BorderLayout.CENTER); // mapkit
 			add(wpQuick, BorderLayout.EAST);
 			mapKit.setVisible(true); // turn on mapkit panel
 			wpQuick.setVisible(true);
 			setpanel.setVisible(false); //turn on settings panel
 			wpConfig.setVisible(false);
+			searchBar.setVisible(true);
 			break;
 		// show settings
 		case 2:	
@@ -232,6 +282,7 @@ public class MainWindow extends JFrame {
 			wpQuick.setVisible(false);
 			setpanel.setVisible(true);
 			wpConfig.setVisible(false);
+			searchBar.setVisible(false);
 			break;
 		// show wp config
 		case 3:
@@ -240,6 +291,7 @@ public class MainWindow extends JFrame {
 			wpQuick.setVisible(false);
 			setpanel.setVisible(false);
 			wpConfig.setVisible(true);
+			searchBar.setVisible(false);
 			break;
 		}
 		
@@ -247,16 +299,24 @@ public class MainWindow extends JFrame {
 		//repaint(); //update the window with latest info
 	}
 	
+	/**
+	 * The close method exits out of the frame.
+	 * @author Chad
+	 */
 	public void close() {
 		WindowEvent wev = new WindowEvent(this, WindowEvent.WINDOW_CLOSING);
         Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
 	}
 	
 	/**
-	 *  @author Nick
-	 *  @param optionsSet    An array containing the options selected for the settings of the map viewer. They are defined to a default state
-	 *                       and updated each time the 'OK' button is pressed
-	 *  @param savedOptions  An array containing the contents of a text file called settings.txt.                  
+	 * The SettingsWindow class extends the JPanel class and allows for 
+	 * changing the look and feel of the main map. It performs persistent 
+	 * saving of the settings that you choose.
+	 * @author Nick
+	 * @param optionsSet    An array containing the options selected for the settings of the map viewer. They are defined to a default state
+	 *                      and updated each time the 'OK' button is pressed
+	 * @param savedOptions  An array containing the contents of a text file called settings.txt.
+	 * @see javax.swing.JPanel                  
 	 */
 	public class SettingsWindow extends JPanel {
 		// define private radio buttons here for settings window
@@ -576,9 +636,11 @@ public class MainWindow extends JFrame {
 	}
 	
 	/**
-	 * @author Sabrina
 	 * The WPConfig class extends the JPanel class and implements ListSelectionListener
-	 * forming the necessary components dedicated to customizing the waypoint quick links. 
+	 * forming the necessary components dedicated to customizing the waypoint quick links.
+	 * @author Sabrina
+	 * @see javax.swing.JPanel
+	 * @see javax.swing.event.ListSelectionListener
 	 */
 	public class WPConfig extends JPanel implements ListSelectionListener {
 		private JList listAll;
@@ -766,8 +828,11 @@ public class MainWindow extends JFrame {
 					
 					listSelect.setSelectedIndex(index);
 					listSelect.ensureIndexIsVisible(index);
-				} else if (selModel.getSize() == 0) {
+				} 
+				if (selModel.getSize() == 0) {
 					clearBtn.setEnabled(false);
+				} else if (selModel.getSize() <9 ) {
+					addBtn.setEnabled(true);
 				}
 			}
 		}
@@ -792,11 +857,18 @@ public class MainWindow extends JFrame {
 			
 				if (!listAll.isSelectionEmpty() && selModel.getSize() < 10) {
 					temp = listAll.getSelectedValue();
-					selModel.addElement(temp);
+					if (!selModel.contains(temp)) {
+						selModel.addElement(temp);
+					}
 					clearBtn.setEnabled(true);
 				} else if (selModel.getSize() == 10) {
 					addBtn.setEnabled(false);
 				}
+				
+				if (selModel.getSize() == 10) {
+					addBtn.setEnabled(false);
+				}
+				
 			}
 		}
 	
@@ -816,6 +888,7 @@ public class MainWindow extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				selModel.clear();
 				clearBtn.setEnabled(false);
+				addBtn.setEnabled(true);
 			}
 		}
 	
