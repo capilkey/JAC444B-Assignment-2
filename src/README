@@ -1,0 +1,7 @@
+After creating the JAR files, I've imported the JAR files into Eclipse again. 
+I've checked that there's no compilation error. I will lose 50% if that's 
+not the case.
+
+To run this application it should be run through Eclipse with jre7 installed.
+
+No third-party Java packages were used other then the four for the project.

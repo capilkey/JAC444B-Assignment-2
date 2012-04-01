@@ -10,21 +10,21 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
-import java.io.File;
-import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -49,14 +49,15 @@ import org.jdesktop.swingx.painter.Painter;
 
 import custom.waypoint.WaypointExt;
 
-@SuppressWarnings("serial")
-/**@author ChadV2
+/**
  * The CustomMapKit class extends the JXMapViewer class and
  * seeks to extend the latter's functionality by handling
  * Waypoint management as well as adding zoom buttons and
  * a minimap.
- * 
+ * @author Chad
+ * @see org.jdesktop.swingx.JXMapViewer
  */
+@SuppressWarnings("serial")
 public class CustomMapKit extends JXMapViewer {
 	final private JXMapViewer miniMap = new JXMapViewer();
 	final private JButton plus = new JButton(), minus = new JButton();
@@ -72,7 +73,7 @@ public class CustomMapKit extends JXMapViewer {
 	 * This is the only constructor and takes no arguments.
 	 * It handles all the set up of the map kit on its own.
 	 * @author Chad
-	 * @see JXMapViewer()
+	 * 
 	 */
 	public CustomMapKit() {
 		super();
@@ -80,13 +81,9 @@ public class CustomMapKit extends JXMapViewer {
 		setRestrictOutsidePanning(true); // make sure you cant pan too far up or down
 		setLayout(new BorderLayout());
 		
-		// set the image to show when loading a new map tile
-		// the default image is just a black box
-		try {
-			this.setLoadingImage(ImageIO.read(new File("resources/loading.png")));
-		} catch (IOException e) {
-			System.out.println("loading.png not found");
-		}
+		URL imgURL = getClass().getClassLoader().getResource("resources/loading.png");
+		Image loadingImg = Toolkit.getDefaultToolkit().getImage(imgURL);
+		setLoadingImage(loadingImg);
 		
 		address.setVisible(false);
 		add(address);
@@ -134,7 +131,7 @@ public class CustomMapKit extends JXMapViewer {
 			}
 		});
 		
-		addMouseMotionListener( new MouseMotionAdapter() {
+		addMouseMotionListener( new MouseMotionListener() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Rectangle view = getViewportBounds(); // find the point to offset by
@@ -157,6 +154,14 @@ public class CustomMapKit extends JXMapViewer {
 				} else 
 					address.setVisible(false);
 			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				// make the minimap move with the main map
+				miniMap.setCenterPosition(getCenterPosition());
+			}
+			
+			
 		});
 	}
 	
@@ -217,7 +222,7 @@ public class CustomMapKit extends JXMapViewer {
 	 */
 	private void setupZoomButtons() {
 		// the plus button increases the zooms one more level in
-		plus.setIcon( new ImageIcon("resources/plus.png") ); // icon grabbed from JXMapKit
+		plus.setIcon( new ImageIcon("src/resources/plus.png") ); // icon grabbed from JXMapKit
 		plus.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -227,7 +232,7 @@ public class CustomMapKit extends JXMapViewer {
 		});
 		
 		// the minus button reduces the zoom by one level
-		minus.setIcon( new ImageIcon("resources/minus.png") ); // icon grabbed from JXMapKit
+		minus.setIcon( new ImageIcon("src/resources/minus.png") ); // icon grabbed from JXMapKit
 		minus.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -280,6 +285,7 @@ public class CustomMapKit extends JXMapViewer {
 		miniMap.setZoom(15);
 		
 		miniMap.setRestrictOutsidePanning(true);
+		miniMap.setPanEnabled(false);
         //miniMap.setZoomEnabled(false);
 		
 		JPanel jp = new JPanel();
@@ -321,8 +327,7 @@ public class CustomMapKit extends JXMapViewer {
 
 				g.dispose();
                 
-				// make the minimap move with the main map
-				map.setCenterPosition(getCenterPosition());
+				
 			}
 		};
 		
@@ -450,6 +455,43 @@ public class CustomMapKit extends JXMapViewer {
 	}
 	
 	/**
+	 * The setAddressLocation method passes the location onto the super class method
+	 * and sets the minimap to the same location.
+	 * @author Chad
+	 * @param addressLocation the location that you want to send the map to
+	 */
+	@Override
+	public void setAddressLocation(GeoPosition addressLocation) {
+		super.setAddressLocation(addressLocation);
+		miniMap.setAddressLocation(addressLocation);
+	}
+	
+	/**
+	 * The setCenterPosition method passes the location onto the super class method
+	 * and sets the minimap to the same location.
+	 * @author Chad
+	 * @param geoPosition the location that you want to send the map to
+	 */
+	@Override
+	public void setCenterPosition(GeoPosition geoPosition) {
+		super.setCenterPosition(geoPosition);
+		miniMap.setCenterPosition(geoPosition);
+	}
+	
+	/**
+	 * The setCenter method passes the location onto the super class method
+	 * and sets the minimap to the same location after taking into account zoom.
+	 * @author Chad
+	 * @param pt the location that you want to send the map to
+	 */
+	@Override
+	public void setCenter(Point2D pt) {
+		super.setCenter(pt);
+		this.getTileFactory().pixelToGeo(pt, getZoom());
+		miniMap.setCenter(miniMap.getTileFactory().geoToPixel(getTileFactory().pixelToGeo(pt, getZoom()), miniMap.getZoom()));
+	}
+	
+	/**
 	 * getCoder() returns a reference to the Geocode instance object in the mapkit.
 	 * @return returns a reference to a Geocode object
 	 */
@@ -457,15 +499,30 @@ public class CustomMapKit extends JXMapViewer {
 		return coder;
 	}
 	
+	/**
+	 * The setMiniMapVisible method turns the minimap on or off depending on 
+	 * the value of the passed boolean.
+	 * @param visible
+	 */
 	public void setMiniMapVisible(boolean visible) {
 		miniMap.setVisible(visible);
 	}
 	
+	/**
+	 * The setZoomButtonsVisible method turns the minimap on or off depending on 
+	 * the value of the passed boolean.
+	 * @param visible
+	 */
 	public void setZoomButtonsVisible(boolean visible) {
 		plus.setVisible(visible);
 		minus.setVisible(visible);
 	}
 	
+	/**
+	 * The setZoomSliderVisible method turns the minimap on or off depending on 
+	 * the value of the passed boolean.
+	 * @param visible
+	 */
 	public void setZoomSliderVisible(boolean visible) {
 		jsZoom.setVisible(visible);
 	}

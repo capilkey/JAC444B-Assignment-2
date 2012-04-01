@@ -335,7 +335,7 @@ public class MainWindow extends JFrame {
 				savedOptions = readSetting(); // read the text file into string
 				//System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2]+savedOptions[3] );
 			} catch (IOException e2) { //file could not be read
-				e2.printStackTrace();
+				//e2.printStackTrace();
 				try {
 					createTxtFile(); //create a new file because could not read or find one
 					savedOptions = readSetting(); //read in the saved options from file just created
@@ -467,7 +467,7 @@ public class MainWindow extends JFrame {
 
 			// check to see if the saved options are valid for the setting being set
 			if (ValidateTextfile(savedOptions)){ //if saved options array is valid
-				//System.arraycopy(savedOptions, 0, optionsSet, 0, 4); //copy the it to the array used in memory
+				System.arraycopy(savedOptions, 0, optionsSet, 0, 4); //copy the it to the array used in memory
 				refreshMap(); //call methods to update mapkit
 				setRadioButtons();
 				setSlider();
