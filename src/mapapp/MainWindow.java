@@ -213,7 +213,8 @@ public class MainWindow extends JFrame {
 			}
 		});
 		
-		searchField = new JTextField(20);	
+		searchField = new JTextField(20);
+		searchField.setToolTipText("Enter an Address or Postal Code");
 		searchField.addActionListener( new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				search();
@@ -335,7 +336,7 @@ public class MainWindow extends JFrame {
 				savedOptions = readSetting(); // read the text file into string
 				//System.out.println("Settings read from file are:: " + savedOptions[0] +savedOptions[1] +savedOptions[2]+savedOptions[3] );
 			} catch (IOException e2) { //file could not be read
-				e2.printStackTrace();
+				//e2.printStackTrace();
 				try {
 					createTxtFile(); //create a new file because could not read or find one
 					savedOptions = readSetting(); //read in the saved options from file just created
@@ -467,7 +468,7 @@ public class MainWindow extends JFrame {
 
 			// check to see if the saved options are valid for the setting being set
 			if (ValidateTextfile(savedOptions)){ //if saved options array is valid
-				//System.arraycopy(savedOptions, 0, optionsSet, 0, 4); //copy the it to the array used in memory
+				System.arraycopy(savedOptions, 0, optionsSet, 0, 4); //copy the it to the array used in memory
 				refreshMap(); //call methods to update mapkit
 				setRadioButtons();
 				setSlider();
@@ -797,8 +798,7 @@ public class MainWindow extends JFrame {
 				if (listAll.getSelectedIndex() == -1) {
 					// nothing selected
 					addBtn.setEnabled(false);
-				}
-				else {
+				} else if (selModel.getSize() < 10) {
 					// selected
 					addBtn.setEnabled(true);
 				}
@@ -831,7 +831,7 @@ public class MainWindow extends JFrame {
 				} 
 				if (selModel.getSize() == 0) {
 					clearBtn.setEnabled(false);
-				} else if (selModel.getSize() <9 ) {
+				} else if (selModel.getSize() < 10 ) {
 					addBtn.setEnabled(true);
 				}
 			}
