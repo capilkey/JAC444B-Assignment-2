@@ -1,3 +1,9 @@
+/* JAC444B Assignment 2
+ * Group: 4
+ * Authors:Chad Pilkey, Sabrina Chew, Nick Russell
+ * Date: 31-March-2012
+ */
+
 package custom.mapkit;
 
 import java.awt.BorderLayout;
@@ -63,7 +69,7 @@ public class CustomMapKit extends JXMapViewer {
 	final private Geocode coder = new Geocode();
 	
 	/**
-	 * This is the only contstructor and takes no arguments.
+	 * This is the only constructor and takes no arguments.
 	 * It handles all the set up of the map kit on its own.
 	 * @author Chad
 	 * @see JXMapViewer()
@@ -327,7 +333,7 @@ public class CustomMapKit extends JXMapViewer {
 	}
 	
 	/**
-	 * The TileFactory code was taken from the website and without it the map wouldnt load
+	 * The TileFactory code was taken from the website and without it the map wouldn't load
 	 * http://javafx.com/samples/ExercisingSwing/index.html
 	 */
 	private void setupMapSource() {
